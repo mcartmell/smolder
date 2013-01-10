@@ -380,6 +380,7 @@ sub create_database {
 
     my @files   = glob(catfile(SQLDir, '*.sql'));
     foreach my $f (@files) {
+			warn "running $f";
         eval { $class->run_sql_file($f) };
         die "Couldn't load SQL file $f! $@" if $@;
     }

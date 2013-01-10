@@ -4,7 +4,7 @@ CREATE TABLE preference (
     email_freq  TEXT DEFAULT 'on_new',
     email_limit INT DEFAULT 0,
     email_sent  INT DEFAULT 0,
-    email_sent_timestamp INTEGER,
+    email_sent_timestamp TEXT,
     show_passing INT DEFAULT 1
 );
 

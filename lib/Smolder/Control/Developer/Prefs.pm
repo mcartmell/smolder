@@ -178,10 +178,10 @@ sub update_pref {
       || return $self->check_rm_error_page();
     my $valid = $results->valid();
 
-    my $pref = Smolder::DB::Preference->retrieve($valid->{id});
+    my $pref = $self->rs('Preference')->find($valid->{id});
     if ($pref) {
         delete $valid->{id};
-        $pref->set(%$valid);
+        $pref->set_inflated_columns($valid);
         $pref->update();
 
         # is this the default pref?
@@ -198,7 +198,7 @@ sub update_pref {
     if ($self->query->param('sync') && ($pref->id eq $self->developer->preference)) {
         my @projs = $self->developer->project_developers;
         foreach my $proj (@projs) {
-            $proj->preference->set(%$valid);
+            $proj->preference->set_inflated_columns($valid);
             $proj->preference->update();
         }
         $self->add_message(msg => "Preferences have been successfully synced with all Projects.");

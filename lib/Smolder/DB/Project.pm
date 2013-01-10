@@ -198,65 +198,6 @@ sub set_admins {
     $sth->execute($self->id, @admins);
 }
 
-=head3 all_reports
-
-Returns a list of L<Smolder::DB::SmokeReport> objects that are associate with this
-Project in descending order (by default). You can provide optional 'limit' and 'offset' parameters
-which will control which reports (and how many) are returned.
-
-You can additionally specify a 'direction' parameter to specify the order in which they
-are returned.
-
-    # all of them
-    my @reports = $project->all_reports();
-
-    # just 5 most recent
-    @reports = $project->all_reports(
-        limit => 5
-    );
-
-    # the next 5
-    @reports = $project->all_reports(
-        limit   => 5,
-        offset  => 5,
-    );
-
-    # in ascendig order
-    @reports = $project->all_reports(
-        direction   => 'ASC',
-    );
-
-=cut
-
-sub all_reports {
-    my ($self, %args) = @_;
-    my $limit     = $args{limit}     || 0;
-    my $offset    = $args{offset}    || 0;
-    my $direction = $args{direction} || 'DESC';
-    my $tag       = $args{tag};
-    my @bind_vars = ($self->id);
-
-    my $sql;
-    if ($tag) {
-        $sql = q/SELECT sr.* FROM smoke_report sr
-        JOIN project p ON (sr.project = p.id)
-        JOIN smoke_report_tag srt ON (srt.smoke_report = sr.id)
-        WHERE p.id = ? AND srt.tag = ?/;
-        push(@bind_vars, $tag);
-    } else {
-        $sql = q/SELECT sr.* FROM smoke_report sr
-        JOIN project p ON (sr.project = p.id)
-        WHERE p.id = ?/;
-    }
-
-    $sql .= " ORDER BY added $direction, sr.id DESC";
-    $sql .= " LIMIT $offset, $limit " if ($limit);
-
-    my $sth = $self->db_Main->prepare_cached($sql);
-    $sth->execute(@bind_vars);
-    return Smolder::DB::SmokeReport->sth_to_objects($sth);
-}
-
 =head3 report_count
 
 The number of reports associated with this Project. Can also provide an
@@ -554,42 +495,6 @@ sub graph_start_datetime {
         $dt = DateTime->today();
     }
     return $dt;
-}
-
-=head3 purge_old_reports 
-
-This method will check to see if the C<max_reports> limit has been reached
-for this project and delete the tap archive files associated with those
-reports, also marking the reports as C<purged>.
-
-=cut
-
-sub purge_old_reports {
-    my $self = shift;
-    if ($self->max_reports) {
-
-        # Delete any non-purged reports that pass the above limit
-        my $sth = $self->db_Main->prepare_cached(
-            q(
-            SELECT id FROM smoke_report
-            WHERE project = ? AND purged = 0
-            ORDER BY added DESC
-            LIMIT 1000000 OFFSET 
-        ) . $self->max_reports
-        );
-        $sth->execute($self->id);
-        my (@ids, $id);
-        $sth->bind_col(1, \$id);
-        push(@ids, $id) while ($sth->fetch);
-        $sth->finish();
-
-        foreach my $id (@ids) {
-            my $report = Smolder::DB::SmokeReport->retrieve($id);
-            $report->delete_files();
-            $report->purged(1);
-            $report->update();
-        }
-    }
 }
 
 =head3 most_recent_report

@@ -30,14 +30,6 @@ used as an accessor and mutator.
 
 =cut
 
-sub is_muted {
-    my ($self) = @_;
-
-    my $mute_until = $self->mute_until;
-    my $is_muted = defined($mute_until) && time < $mute_until->epoch;
-    return $is_muted;
-}
-
 __PACKAGE__->has_a(project => 'Smolder::DB::Project');
 
 1;

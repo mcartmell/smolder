@@ -11,11 +11,12 @@ use Template::Plugin::Cycle;
 use CGI::Cookie;
 # This has nice output, but can't get it to work more than once... - JS
 # BEGIN { $ENV{CGI_APP_DEBUG} = 1 ; } use CGI::Application::Plugin::DebugScreen;
+use Plack::Request;
 use Smolder;
 use Smolder::Util;
 use Smolder::Conf qw(ErrorsToScreen HostName Port LogFile LogLevel TemplateDir);
-use Smolder::DB::Developer;
-use Smolder::DB::Project;
+use Smolder::DB::Schema;
+use Smolder::DBIConn;
 use File::Spec::Functions qw(catdir catfile tmpdir);
 
 #{package Template::Perl;
@@ -70,17 +71,18 @@ __PACKAGE__->add_callback(
     prerun => sub {
         my $self   = shift;
         my $q      = $self->query;
-        my $cookie = CGI::Cookie->fetch();
-        $cookie = $cookie->{smolder};
+				my $req = Plack::Request->new($q->env);
+        my $cookie = $req->cookies->{smolder};
         my $ai = Smolder::AuthInfo->new();
         my @user_groups;
 
         # make sure we have a cookie and a session
-        if (ref $cookie) {
-            my $value = $cookie->value;
+        if ($cookie) {
+            my $value = $cookie;
             if ($value) {
                 $ai->parse($value);
                 if( $ai->id ) {
+									warn $ai->id;
                     $ENV{REMOTE_USER} = $ai->id;
                     @user_groups = @{$ai->groups};
                 }
@@ -175,9 +177,9 @@ sub developer {
         # REMOTE_USER is set in our prerun
         my $dev;
         if ($ENV{REMOTE_USER} eq 'anon') {
-            $dev = Smolder::DB::Developer->get_guest();
+            $dev = $self->rs('Developer')->get_guest();
         } else {
-            $dev = Smolder::DB::Developer->retrieve($ENV{REMOTE_USER});
+            $dev = $self->rs('Developer')->find($ENV{REMOTE_USER});
         }
         $self->param(__developer => $dev);
     }
@@ -193,7 +195,7 @@ has permissions to view the given a L<Smolder::DB::Project> object.
 
 sub can_see_project {
     my ($self, $proj) = @_;
-    return $proj->public || $proj->has_developer($self->developer);
+		return $proj->public || $proj->has_developer($self->developer);
 }
 
 =head2 public_projects
@@ -204,7 +206,7 @@ This method will return the L<Smolder::DB::Projects> that are marked as 'public'
 
 sub public_projects {
     my $self = shift;
-    my @projs = Smolder::DB::Project->search(public => 1, {order_by => 'name'});
+    my @projs = rs('Project')->search({ public => 1 }, {order_by => 'name'});
     return \@projs;
 }
 
@@ -291,10 +293,6 @@ frustrated by having to fight with browser caches.
 sub static_url {
     my ($self, $url) = @_;
 
-    # TODO - fix this after the switch to CGI::Application::Server
-    #return $url;
-
-    $url =~ s/^\///;
     return $url;
 }
 
@@ -473,6 +471,14 @@ sub _create_dfv_msgs {
         }
     }
     return \%msgs;
+}
+
+sub rs {
+	schema()->resultset(pop);
+}
+
+sub schema {
+	return Smolder::DB::Schema->connect( sub { Smolder::DBIConn->instance->dbh });
 }
 
 1;
