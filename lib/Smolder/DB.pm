@@ -1,28 +1,10 @@
 package Smolder::DB;
 use strict;
 use warnings;
-use base 'Class::DBI::SQLite';
 use Smolder::Conf qw(SQLDir DataDir);
 use DBI;
-use Class::DBI::Plugin::RetrieveAll;
 use File::Spec::Functions qw(catfile);
 use DateTime::Format::Strptime;
-
-__PACKAGE__->connection(
-    "dbi:SQLite:dbname=" . __PACKAGE__->db_file(),
-    '', '',
-    {
-        RaiseError         => 1,
-        PrintError         => 0,
-        Warn               => 0,
-        PrintWarn          => 0,
-        AutoCommit         => 1,
-        FetchHashKeyName   => 'NAME_lc',
-        ShowErrorStatement => 1,
-        ChopBlanks         => 1,
-        RootClass          => 'DBIx::ContextualFetch',
-    }
-);
 
 =head1 NAME
 
@@ -35,8 +17,6 @@ Database connections and Object-Relational-Mapper methods
 In your subclass,
 
  use base 'Smolder::DB';
-
-and now you have Class::DBI::mysql methods ready for use.
 
  my $obj = Smolder::DB::Class->new;
 
