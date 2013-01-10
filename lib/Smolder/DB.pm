@@ -57,7 +57,7 @@ Get the database handle.
 =cut
 
 sub dbh {
-    return shift->db_Main;
+    return Smolder::DBIConn::dbh();
 }
 
 =head2 commit
@@ -67,7 +67,7 @@ Commit the current transaction
 =cut
 
 sub commit {
-    shift->db_Main->commit();
+    dbh->commit();
 }
 
 =head2 rollback
@@ -77,7 +77,7 @@ Rollback to the last C<commit>
 =cut
 
 sub dbi_rollback {
-    shift->db_Main->rollback();
+    dbh->rollback();
 }
 
 =head2 disconnect
@@ -87,7 +87,7 @@ Disconnects the current database handle stored in db_Main.
 =cut
 
 sub disconnect {
-    return shift->db_Main->disconnect;
+    dbh->disconnect;
 }
 
 =head2 vars
@@ -172,7 +172,7 @@ sub column_values {
         push(@bind_cols, $substr);
     }
 
-    my $sth = Smolder::DB->db_Main()->prepare_cached($sql);
+    my $sth = Smolder::DBIConn->dbh()->prepare_cached($sql);
     $sth->execute(@bind_cols);
     my @values;
     while (my $row = $sth->fetchrow_arrayref()) {
@@ -241,7 +241,7 @@ sub run_sql_file {
     open(my $IN, '<', $file) or die "Could not open file '$file' for reading: $!";
 
     require Smolder::DB;
-    my $dbh = Smolder::DB->db_Main();
+    my $dbh = Smolder::DBIConn->dbh();
 
     my $sql = '';
 
@@ -282,7 +282,7 @@ sub dump_database {
 
     # get the list of tables
     require Smolder::DB;
-    my $dbh = Smolder::DB->db_Main();
+    my $dbh = Smolder::DBIConn->dbh();
     my $sth = $dbh->prepare(
         q(
         SELECT name FROM sqlite_master WHERE type = 'table'

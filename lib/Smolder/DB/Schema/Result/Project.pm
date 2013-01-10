@@ -330,4 +330,49 @@ sub purge_old_reports {
     }
 }
 
+=head3 tags
+
+Returns a list of all of tags that have been added to smoke reports for
+this project (in the smoke_report_tag table).
+
+    # returns a simple list of scalars
+    my @tags = $project->tags();
+
+    # returns a hash of the tag value and count, ie { tag => 'foo', count => 20 }
+    my @tags = $project->tags(with_counts => 1);
+
+=cut
+
+sub tags {
+    my ($self, %args) = @_;
+    my @tags;
+		my $dbh = Smolder::DBIConn::dbh();
+    if ($args{with_counts}) {
+        my $sth = $dbh->prepare_cached(
+            q/
+            SELECT srt.tag, COUNT(*) FROM smoke_report_tag srt
+            JOIN smoke_report sr ON (sr.id = srt.smoke_report)
+            WHERE sr.project = ? GROUP BY srt.tag ORDER BY srt.tag/
+        );
+        $sth->execute($self->id);
+        while (my $row = $sth->fetchrow_arrayref()) {
+            push(@tags, {tag => $row->[0], count => $row->[1]});
+        }
+    } else {
+        my $sth = $dbh->prepare_cached(
+            q/
+            SELECT DISTINCT(srt.tag) FROM smoke_report_tag srt 
+            JOIN smoke_report sr ON (sr.id = srt.smoke_report) 
+            WHERE sr.project = ? ORDER BY srt.tag/
+        );
+        $sth->execute($self->id);
+        while (my $row = $sth->fetchrow_arrayref()) {
+            push(@tags, $row->[0]);
+        }
+    }
+    return @tags;
+
+}
+
+
 1;

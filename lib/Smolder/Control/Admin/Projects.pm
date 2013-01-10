@@ -3,9 +3,6 @@ use strict;
 use warnings;
 use base 'Smolder::Control';
 use Data::FormValidator::Constraints::DateTime qw(to_datetime);
-use Smolder::DB::Project;
-use Smolder::DB::Developer;
-use Smolder::DB::ProjectDeveloper;
 use Smolder::Constraints qw(
   length_max
   unsigned_int
@@ -58,10 +55,10 @@ Change the project admin status for a developer within a project.
 sub change_admin {
     my $self    = shift;
     my $query   = $self->query;
-    my $project = Smolder::DB::Project->retrieve($query->param('project'));
+    my $project = $self->rs('Project')->find($query->param('project'));
     return $self->error_message("Project does not exist!") unless $project;
 
-    my $dev = Smolder::DB::Developer->retrieve($query->param('developer'));
+    my $dev = $self->rs('Developer')->find($query->param('developer'));
     return $self->error_message("Project does not exist!") unless $dev;
 
     # clear out the old admins
@@ -96,8 +93,8 @@ Uses the F<Admin/Projects/devs.tmpl> template.
 sub devs {
     my ($self, $tt_params, $proj) = @_;
     $tt_params ||= {};
-    $proj ||= Smolder::DB::Project->retrieve($self->param('id') || $self->query->param('project'));
-    my @devs = Smolder::DB::Developer->search(guest => 0);
+    $proj ||= $self->rs('Project')->find($self->param('id') || $self->query->param('project'));
+    my @devs = $self->rs('Developer')->search({ guest => 0 });
     my @proj_devs = $proj->developers;
 
     # only show developers that aren't in this project
@@ -122,13 +119,13 @@ Add a developer to a project. Returns the C<dev> run mode when done.
 sub add_dev {
     my $self  = shift;
     my $query = $self->query;
-    my $proj  = Smolder::DB::Project->retrieve($query->param('project'));
-    my $dev   = Smolder::DB::Developer->retrieve($query->param('developer'));
+    my $proj  = $self->rs('Project')->find($query->param('project'));
+    my $dev   = $self->rs('Developer')->find($query->param('developer'));
 
     if ($dev && $proj) {
         my $proj_pref = $dev->preference->copy;
         eval {
-            my $proj_dev = Smolder::DB::ProjectDeveloper->create(
+            my $proj_dev = $self->rs('ProjectDeveloper')->create(
                 {
                     project    => $proj,
                     developer  => $dev,
@@ -163,11 +160,11 @@ when done.
 sub remove_dev {
     my $self  = shift;
     my $query = $self->query;
-    my $proj  = Smolder::DB::Project->retrieve($query->param('project'));
-    my $dev   = Smolder::DB::Developer->retrieve($query->param('developer'));
+    my $proj  = $self->rs('Project')->find($query->param('project'));
+    my $dev   = $self->rs('Developer')->find($query->param('developer'));
 
     if ($dev && $proj) {
-        Smolder::DB::ProjectDeveloper->retrieve(
+        $self->rs('ProjectDeveloper')->find(
             developer => $dev,
             project   => $proj,
         )->delete();
@@ -194,7 +191,7 @@ sub edit {
     my ($self, $err_msgs) = @_;
     my $query = $self->query;
     my $output;
-    my $project = Smolder::DB::Project->retrieve($self->param('id'));
+    my $project = $self->rs('Project')->find($self->param('id'));
 
     my %tt_params = (project => $project, edit => 1);
 
@@ -234,7 +231,7 @@ template.
 
 sub list {
     my $self     = shift;
-    my @projects = Smolder::DB::Project->retrieve_all_sorted_by('name');
+    my @projects = $self->rs('Project')->search(undef, { order_by => { -asc => 'name' } });
     my %tt_params;
     $tt_params{projects} = \@projects if (@projects);
 
@@ -288,7 +285,7 @@ sub process_add {
     # if we're editing
     if ($id) {
         $action  = 'edit';
-        $project = Smolder::DB::Project->retrieve($id);
+        $project = $self->rs('Project')->find($id);
         return $self->error_message("Project no longer exists!")
           unless $project;
         $project->set(%$valid);
@@ -300,7 +297,7 @@ sub process_add {
 
         # we need to eval{} since there is a small race condition
         # that it could contain a duplicate name
-        eval { $project = Smolder::DB::Project->create($valid) };
+        eval { $project = $self->rs('Project')->create($valid) };
     }
 
     # if there was a problem.
@@ -340,7 +337,7 @@ sub details {
     if (!$project) {
         $new = 0;
         my $id = $self->param('id');
-        $project = Smolder::DB::Project->retrieve($id);
+        $project = $self->rs('Project')->find($id);
         return $self->error_message("Can't find Project with id '$id'!") unless $project;
     } else {
         $new = 1;
@@ -361,7 +358,7 @@ returns to the C<list> run mode.
 sub delete {
     my $self    = shift;
     my $id      = $self->param('id');
-    my $project = Smolder::DB::Project->retrieve($id);
+    my $project = $self->rs('Project')->find($id);
 
     if ($project) {
 

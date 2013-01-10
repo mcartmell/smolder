@@ -3,8 +3,6 @@ use base 'Smolder::Control';
 use strict;
 use warnings;
 use Smolder::Conf;
-use Smolder::DB::Project;
-use Smolder::DB::SmokeReport;
 use DateTime;
 use DateTime::Format::Strptime;
 use File::Spec::Functions qw(catdir catfile);
@@ -70,7 +68,7 @@ sub start {
     my ($self, $tt_params) = @_;
     $tt_params ||= {};
 
-    my $project = Smolder::DB::Project->retrieve($self->param('id'));
+    my $project = $self->rs('Project')->retrieve($self->param('id'));
     return $self->error_message('Project does not exist')
       unless $project;
 
@@ -106,7 +104,7 @@ sub image {
     my $self  = shift;
     my $query = $self->query();
 
-    my $project = Smolder::DB::Project->retrieve($self->param('id'));
+    my $project = $self->rs('Project')->find($self->param('id'));
     return $self->error_message('Project does not exist')
       unless $project;
 

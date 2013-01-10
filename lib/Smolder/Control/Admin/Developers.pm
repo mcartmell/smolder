@@ -2,8 +2,6 @@ package Smolder::Control::Admin::Developers;
 use strict;
 use warnings;
 use base 'Smolder::Control';
-use Smolder::DB::Project;
-use Smolder::DB::Developer;
 use Smolder::Email;
 use Smolder::Constraints qw(email unsigned_int length_max length_between bool unique_field_value);
 use Email::Valid;
@@ -52,7 +50,7 @@ displaying the result.
 
 sub reset_pw {
     my $self = shift;
-    my $dev  = Smolder::DB::Developer->retrieve($self->param('id'));
+    my $dev  = $self->rs('Developer')->find($self->param('id'));
     return $self->error_message("Developer no longer exists!")
       unless $dev;
 
@@ -92,7 +90,7 @@ Uses the F<Admin/Developers/edit.tmpl> template.
 
 sub edit {
     my ($self, $err_msgs) = @_;
-    my $developer = Smolder::DB::Developer->retrieve($self->param('id'));
+    my $developer = $self->rs('Developer')->find($self->param('id'));
     my $output;
 
     # if we have any error messages, then just re-fill the form
@@ -141,7 +139,7 @@ sub process_edit {
       || return $self->check_rm_error_page;
     my $valid = $results->valid();
 
-    my $developer = Smolder::DB::Developer->retrieve($id);
+    my $developer = $self->rs('Developer')->find($id);
     return $self->error_message("Developer no longer exists!")
       unless $developer;
     $developer->set(%$valid);
@@ -177,7 +175,7 @@ template.
 sub list {
     my $self       = shift;
     my $cgi        = $self->query();
-    my @developers = Smolder::DB::Developer->search(guest => 0);
+    my @developers = $self->rs('Developer')->search({ guest => 0 });
 
     my %tt_params;
     $tt_params{developers} = \@developers if (@developers);
@@ -225,12 +223,12 @@ sub process_add {
     my $valid = $results->valid();
 
     # create a new preference for this developer;
-    my $pref = Smolder::DB::Preference->create();
+    my $pref = $self->rs('Preference')->create({});
     $valid->{preference} = $pref;
     my $developer;
 
     # we need to eval{} since we don't want there to be duplicate usernames
-    eval { $developer = Smolder::DB::Developer->create($valid) };
+    eval { $developer = $self->rs('Developer')->create($valid) };
 
     # if there was a problem.
     if ($@) {
@@ -260,7 +258,7 @@ successful returns the C<list> mode.
 sub delete {
     my $self      = shift;
     my $id        = $self->param('id');
-    my $developer = Smolder::DB::Developer->retrieve($id);
+    my $developer = $self->rs('Developer')->find($id);
 
     if ($developer) {
 
@@ -293,7 +291,7 @@ sub details {
     if (!$developer) {
         my $id = $self->param('id');
         $new       = 0;
-        $developer = Smolder::DB::Developer->retrieve($id);
+        $developer = $self->rs('Developer')->find($id);
         return $self->error_message("Can't find Developer with id '$id'!") unless $developer;
     } else {
         $new = 1;

@@ -119,7 +119,7 @@ of exising platform otpions
 sub platform_options {
     my $self = shift;
     return $self->auto_complete_results(
-        Smolder::DB::SmokeReport->column_values('platform', $self->query->param('platform'),));
+        Smolder::DB->column_values('platform', $self->query->param('platform'),));
 }
 
 =head2 architecture_options
@@ -132,7 +132,7 @@ of exising architecture otpions
 sub architecture_options {
     my $self = shift;
     return $self->auto_complete_results(
-        Smolder::DB::SmokeReport->column_values(
+        Smolder::DB->column_values(
             'architecture', $self->query->param('architecture'),
         )
     );
@@ -736,7 +736,7 @@ sub test_file_history {
 
     my $limit  = $q->param('limit')  || 20;
     my $offset = $q->param('offset') || 0;
-    my @test_file_results = Smolder::DB::TestFileResult->search_where(
+    my @test_file_results = $self->rs('TestFileResult')->search_where(
         {
             project   => $project,
             test_file => $test_file
@@ -745,7 +745,7 @@ sub test_file_history {
             limit_dialect => 'LimitOffset',
             offset        => $offset,
             limit         => $limit,
-            order_by      => 'added DESC'
+            order_by      => { -desc => 'added' },
         }
     );
     my $tt_params = {
@@ -768,35 +768,28 @@ projects that have been marked as C<enable_feed> will appear in any feed.
 sub feed {
     my $self = shift;
     my @binds;
-    my $sql = qq/
-        SELECT sr.* FROM smoke_report sr
-        JOIN project p ON (sr.project = p.id)
-        WHERE p.enable_feed = 1 AND p.id = ?
-    /;
-    my $id      = $self->param('id');
-    my $project = $self->rs('Project')->find($id);
 
+		my $id = $self->param('id');
+    my $project = $self->rs('Project')->find($id);
     return $self->error_message('Unauthorized for this project')
       unless $self->can_see_project($project);
 
     my $type    = $self->param('type');
-    push(@binds, $id);
 
-    if ($type and $type eq 'failed') {
-        $sql .= ' AND sr.failed = 1 ';
-    }
-
-    $sql .= ' ORDER BY sr.added DESC LIMIT 5';
-
-    my $sth = Smolder::DB::SmokeReport->db_Main->prepare_cached($sql);
-    $sth->execute(@binds);
-    my @reports = Smolder::DB::SmokeReport->sth_to_objects($sth);
+    my @reports = $self->rs('SmokeReport')->search({
+				'project.enable_feed' => 1,
+				project => $id,
+				($type && $type eq 'failed' ? (failed => 1) : ()),
+			}, {
+				join => 'project',
+			});
 
     $self->header_props(-type => 'text/xml');
 
     my $updated;
+		#TODO check this DateTime isn't broken
     if (@reports) {
-        $updated = $reports[0]->added;
+        $updated = eval { $reports[0]->added } || DateTime->now();
     } else {
         $updated = DateTime->now();
     }
@@ -805,10 +798,11 @@ sub feed {
         title   => '[' . $project->name . '] Smolder - ' . HostName,
         link    => Smolder::Util::url_base,
         id      => Smolder::Util::url_base,
-        updated => $updated->strftime('%FT%TZ'),
+        updated => eval { $updated->strftime('%FT%TZ') },
     );
 
     foreach my $report (@reports) {
+			my $upd = $report->added || DateTime->now();
         my $link =
             Smolder::Util::url_base() . '/app/'
           . ($project->public ? 'public' : 'developer')
@@ -823,7 +817,7 @@ sub feed {
             link    => $link,
             id      => $link,
             summary => $report->summary,
-            updated => $report->added->strftime('%FT%TZ'),
+            updated => $upd->strftime('%FT%TZ'),
         );
     }
     return $feed->as_string();

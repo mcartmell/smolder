@@ -2,8 +2,7 @@ package Smolder::Constraints;
 use strict;
 use warnings;
 use Smolder::DB;
-use Smolder::DB::SmokeReport;
-use Smolder::DB::Preference;
+use Smolder::DBIConn;
 use Email::Valid;
 use File::Basename;
 use File::Temp;
@@ -175,7 +174,7 @@ sub unique_field_value {
         # get all the values of a certain field
         my $sql = "SELECT $field FROM $table WHERE $field = ?";
         $sql .= " AND id != $id" if ($id);
-        my $sth = Smolder::DB->db_Main->prepare_cached($sql);
+        my $sth = Smolder::DBIConn->dbh->prepare_cached($sql);
         $sth->execute($value);
         my $row = $sth->fetchrow_arrayref();
         $sth->finish();
@@ -200,7 +199,7 @@ sub existing_field_value {
     my ($table, $column) = @_;
     return sub {
         my ($dfv, $value) = @_;
-        my $sth = Smolder::DB->db_Main->prepare_cached(
+        my $sth = Smolder::DBIConn->dbh->prepare_cached(
             qq(
             SELECT $column FROM $table WHERE $column = ?
         )

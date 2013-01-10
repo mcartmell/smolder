@@ -5,6 +5,7 @@ use File::Spec::Functions qw(catfile);
 use Smolder;
 use Smolder::Conf qw(SQLDir);
 use Smolder::DB;
+use Smolder::DBIConn;
 
 =head1 NAME
 
@@ -53,7 +54,7 @@ sub upgrade {
     my $self       = shift;
     # don't do anything for dev releases
     return if $Smolder::VERSION =~ /_/;
-    my $db_version = Smolder::DB->db_Main->selectall_arrayref('SELECT db_version FROM db_version');
+    my $db_version = Smolder::DBIConn->dbh->selectall_arrayref('SELECT db_version FROM db_version');
     $db_version = $db_version->[0]->[0];
     if ($db_version < $Smolder::VERSION) {
 
@@ -91,7 +92,7 @@ sub upgrade {
         }
 
         # upgrade the db_version
-        Smolder::DB->db_Main->do('UPDATE db_version SET db_version = ?', undef, $Smolder::VERSION);
+        Smolder::DBIConn->dbh->do('UPDATE db_version SET db_version = ?', undef, $Smolder::VERSION);
     }
 }
 

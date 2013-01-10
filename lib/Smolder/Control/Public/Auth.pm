@@ -2,7 +2,6 @@ package Smolder::Control::Public::Auth;
 use strict;
 use base 'Smolder::Control';
 use Smolder::AuthInfo;
-use Smolder::DB::Developer;
 use Smolder::DB;
 use Smolder::Email;
 use HTML::FillInForm;
@@ -93,7 +92,7 @@ sub do_login {
     my ($self, $user, $pw) = @_;
 
     # see if we have a user with this password
-    my ($dev) = Smolder::DB::Developer->search(username => $user, guest => 0);
+    my ($dev) = $self->rs('Developer')->search({ username => $user, guest => 0 });
     if ($dev) {
 
         # check to see if the password matches the encrypted one
@@ -143,7 +142,7 @@ that developer. If successful, then return to the C<forgot_pw> mode.
 
 sub process_forgot_pw {
     my $self = shift;
-    my ($dev) = Smolder::DB::Developer->search(username => $self->query->param('username'));
+    my ($dev) = $self->rs('Developer')->search({ username => $self->query->param('username') });
     if ($dev) {
         my $email    = $dev->email;
         my $username = $dev->username;

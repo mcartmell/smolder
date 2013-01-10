@@ -227,8 +227,8 @@ and you want that change to propagate.
 
 sub ACTION_update_smoke_html {
     my $self = shift;
-    require Smolder::DB::SmokeReport;
-    Smolder::DB::SmokeReport->update_all_report_html();
+    require Smolder::DB::Schema::ResultSet::SmokeReport;
+    Smolder::DB::Schema::ResultSet::SmokeReport->update_all_report_html();
 }
 
 =head2 tidy

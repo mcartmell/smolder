@@ -142,7 +142,7 @@ pairs for this preferences data.
 
 sub get_pref_details {
     my $self = shift;
-    my $pref = Smolder::DB::Preference->retrieve($self->query->param('id'));
+    my $pref = $self->db('Preference')->find($self->query->param('id'));
     my %data;
     if ($pref) {
         %data = map { $_ => $pref->$_ } qw(email_type email_freq email_limit show_passing);
