@@ -1,7 +1,9 @@
 package Smolder::Dispatch;
-use base 'CGI::Application::Dispatch';
+
 use strict;
 use warnings;
+
+use parent 'CGI::Application::Dispatch::PSGI';
 
 sub dispatch_args {
     return {

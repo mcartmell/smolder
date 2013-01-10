@@ -1,7 +1,7 @@
 package Smolder::Redirect;
 use strict;
 use warnings;
-use base 'CGI::Application';
+use parent 'CGI::Application';
 
 use Smolder::Conf qw( HostName Port );
 
