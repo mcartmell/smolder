@@ -213,6 +213,7 @@ sub edit {
             enable_feed  => $project->enable_feed,
             max_reports  => $project->max_reports,
             extra_css    => $project->extra_css,
+						vcs_rev_url  => $project->vcs_rev_url,
         );
         $output = HTML::FillInForm->new->fill(
             scalarref => $self->tt_process("Admin/Projects/add.tmpl", \%tt_params),
@@ -265,13 +266,14 @@ sub process_add {
     my $id   = $self->param('id');
     my $form = {
         required           => [qw(project_name start_date public enable_feed max_reports)],
-        optional           => [qw(extra_css)],
+        optional           => [qw(extra_css vcs_rev_url)],
         constraint_methods => {
             project_name => [length_max(255), unique_field_value('project', 'name', $id),],
             start_date   => to_datetime('%m/%d/%Y'),
             public       => bool(),
             enable_feed  => bool(),
             max_reports  => unsigned_int(),
+            vcs_rev_url => [length_max(255)],
         },
     };
 
@@ -288,7 +290,7 @@ sub process_add {
         $project = $self->rs('Project')->find($id);
         return $self->error_message("Project no longer exists!")
           unless $project;
-        $project->set(%$valid);
+        $project->set_inflated_columns($valid);
         $project->update;
 
         # else we're adding a new one

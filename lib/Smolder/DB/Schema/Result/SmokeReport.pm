@@ -518,6 +518,23 @@ sub add_tag {
 		$self->create_related('smoke_report_tags', { tag => $tag });
 }
 
+=head3 revision_url
+
+Returns a link to this revision in the project's VCS web viewer, if there is one set.
+
+=cut
+
+sub revision_url {
+	my $self = shift;
+	return unless $self->revision;
+	if (my $vcs_url = $self->project->vcs_rev_url) {
+		return sprintf($vcs_url, $self->revision);
+	}
+	return;
+}
+
+
+
 =head3 delete_tag
 
 This method will remove a tag from a given smoke report

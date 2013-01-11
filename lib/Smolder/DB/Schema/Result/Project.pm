@@ -87,6 +87,12 @@ __PACKAGE__->table("project");
   default_value: (empty string)
   is_nullable: 1
 
+=head2 vcs_rev_url
+
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -111,6 +117,8 @@ __PACKAGE__->add_columns(
   "max_reports",
   { data_type => "integer", default_value => 100, is_nullable => 1 },
   "extra_css",
+  { data_type => "text", default_value => "", is_nullable => 1 },
+  "vcs_rev_url",
   { data_type => "text", default_value => "", is_nullable => 1 },
 );
 
@@ -218,8 +226,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-10 09:16:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:U8oQtutyyjl4qGfKIun1lA
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-11 15:06:03
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ikao+SwdcMSDc6lNpgd5kQ
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

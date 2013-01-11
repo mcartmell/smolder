@@ -52,7 +52,12 @@
 [%- IF report.revision -%]
 <tr class="[% odd_even %]">
   <th>Revision</th>
-  <td>[% report.revision | html %]</td>
+  <td>
+	[%- IF report.revision_url -%]
+	<a href="[% report.revision_url %]">[% report.revision | html %]</a>
+	[%- ELSE -%]
+	[% report.revision | html %]
+	[%- END -%]</td>
 </tr>
 [%- END -%]
 [% FOREACH k IN extra_properties.keys.sort %]

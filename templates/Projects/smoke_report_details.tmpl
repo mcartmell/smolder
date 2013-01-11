@@ -104,8 +104,11 @@
     <tr>
       <th>Revision</th>
       <td colspan="3">
-        <em>[% report.revision | html %]</em>
-      </td>
+	[%- IF report.revision_url -%]
+	<a href="[% report.revision_url %]"><em>[% report.revision | html %]</em></a>
+	[%- ELSE -%]
+	[% report.revision | html %]
+	[%- END -%]</td>
     </tr>
     [% END %]
     [% IF report.tags.size %]
