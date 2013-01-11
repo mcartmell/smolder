@@ -542,7 +542,7 @@ sub update_from_tap_archive {
     my $next_file_index = 0;
 
     # make our tap directory if it doesn't already exist
-    my $tap_dir = catdir(DataDir, 'tap');
+    my $tap_dir = catdir($self->data_dir, 'tap');
     unless (-d $tap_dir) {
         mkdir($tap_dir) or die "Could not create directory $tap_dir: $!";
     }
@@ -565,7 +565,7 @@ sub update_from_tap_archive {
 
                 # save the raw TAP stream somewhere we can use it later
                 $file_index = $next_file_index++;
-                my $new_file = catfile(DataDir, 'tap', "$file_index.tap");
+                my $new_file = catfile($self->data_dir, 'tap', "$file_index.tap");
                 copy($full_path, $new_file) or die "Could not copy $full_path to $new_file. $!\n";
             },
             meta_yaml_callback => sub {

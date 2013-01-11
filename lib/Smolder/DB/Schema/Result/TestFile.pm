@@ -125,6 +125,13 @@ __PACKAGE__->has_many(
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
+use DateTime;
+
+__PACKAGE__->inflate_column('mute_until', {
+		inflate => sub { DateTime->from_epoch(epoch => shift, time_zone => 'local') },
+		deflate => sub { shift->epoch },
+	});
+
 sub is_muted {
     my ($self) = @_;
 

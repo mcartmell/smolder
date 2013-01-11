@@ -160,4 +160,12 @@ __PACKAGE__->belongs_to(
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
+
+use DateTime;
+
+__PACKAGE__->inflate_column('added', {
+		inflate => sub { DateTime->from_epoch(epoch => shift, time_zone => 'local') },
+		deflate => sub { shift->epoch },
+	});
+
 1;
