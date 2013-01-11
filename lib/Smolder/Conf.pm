@@ -32,7 +32,7 @@ BEGIN {
         Port                  => 8080,
         HostName              => $default_hostname,
         FromAddress           => "smolder\@$default_hostname",
-        SMTPHost              => $default_hostname,
+        SMTPHost              => 'localhost',
         LogFile               => '',
         LogLevel              => 'warning',
         PidFile               => undef,
