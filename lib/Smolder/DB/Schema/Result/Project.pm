@@ -320,7 +320,7 @@ optional tag to use as well
 sub report_count {
     my ($self, $tag) = @_;
     if ($tag) {
-			return $self->smoke_reports({ 'smoke_report_tag.smoke_report' => 'smoke_report.id' }, { join => 'smoke_report_tags' })->count;
+			return $self->smoke_reports({ 'smoke_report_tags.smoke_report' => 'smoke_report.id' }, { join => 'smoke_report_tags' })->count;
     } else {
 			return $self->smoke_reports->count;
     }
