@@ -1,8 +1,10 @@
 #!/usr/local/bin/perl
 use strict;
 use warnings;
-		BEGIN { 
-			require Smolder::DB;
+
+# create database if it doesn't exist
+BEGIN {
+    require Smolder::DB;
     unless (-e Smolder::DB->db_file) {
         Smolder::DB->create_database;
     } else {
@@ -10,7 +12,8 @@ use warnings;
         require Smolder::Upgrade;
         Smolder::Upgrade->new->upgrade();
     }
-	}
+}
+# preload some modules
 use Smolder::Dispatch;
 use Smolder::Dispatch;
 use Smolder::Control;
@@ -28,9 +31,9 @@ use Smolder::Conf qw(Port HostName LogFile HtdocsDir DataDir PidFile);
 use Smolder::Upgrade;
 use Plack::Builder;
 
-    # do we have a database? If not then create one
 builder {
-	enable "Plack::Middleware::Static", path => qr{^/(js|style|images)/}, root => HtdocsDir;
-	mount '/' => Smolder::Redirect->psgi_app,
-	mount '/app' => Smolder::Dispatch->as_psgi
+    enable "Plack::Middleware::Static", path => qr{^/(js|style|images)/}, root => HtdocsDir;
+    mount
+      '/'          => Smolder::Redirect->psgi_app,
+      mount '/app' => Smolder::Dispatch->as_psgi;
 }

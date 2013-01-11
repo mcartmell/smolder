@@ -14,10 +14,7 @@ sub setup {
 sub redirect {
     my $self = shift;
     $self->header_type('redirect');
-    $self->header_add( -uri => 'http://' 
-            . HostName
-            . ( Port == 80 ? '' : ':' . Port )
-            . '/app' );
+    $self->header_add( -uri => '/app' );
     return "Redirecting...\n";
 }
 
