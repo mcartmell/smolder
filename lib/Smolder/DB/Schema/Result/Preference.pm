@@ -136,6 +136,20 @@ __PACKAGE__->inflate_column('email_sent_timestamp', {
 		deflate => sub { Smolder::DB->format_datetime(shift) },
 	});
 
+sub project {
+	my $self = shift;
+	my ($proj_dev) = $self->project_developers;
+	return $proj_dev->project;
+}
+
+sub email_types {
+	return Smolder::DB->enum_values('preference', 'email_type');
+}
+
+sub email_freqs {
+	return Smolder::DB->enum_values('preference', 'email_freq');
+}
+
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

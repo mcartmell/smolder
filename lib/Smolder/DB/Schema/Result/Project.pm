@@ -224,6 +224,7 @@ __PACKAGE__->has_many(
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
+use DateTime;
 use Smolder::DBIConn;
 
 __PACKAGE__->many_to_many('developers' => 'project_developers' => 'developer');
@@ -309,6 +310,22 @@ sub all_reports {
 		return @reports;
 }
 
+=head3 report_count
+
+The number of reports associated with this Project. Can also provide an
+optional tag to use as well
+
+=cut
+
+sub report_count {
+    my ($self, $tag) = @_;
+    if ($tag) {
+			return $self->smoke_reports({ 'smoke_report_tag.smoke_report' => 'smoke_report.id' }, { join => 'smoke_report_tags' })->count;
+    } else {
+			return $self->smoke_reports->count;
+    }
+}
+
 =head3 purge_old_reports 
 
 This method will check to see if the C<max_reports> limit has been reached
@@ -371,8 +388,251 @@ sub tags {
         }
     }
     return @tags;
-
 }
 
+=head3 admins 
+
+Returns a list of L<Smolder::DB::Schema::Result::Developer> objects who are considered 'admins'
+for this Project
+
+=cut
+
+sub admins {
+	my $self = shift;
+	return $self->developers({ 'me.admin' => 1 }, join => 'project_developers');
+}
+
+=head3 is_admin
+
+Returns true if the given L<Smolder::DB::Developer> is considered an 'admin'
+for this Project.
+
+    if( $project->is_admin($developer) {
+    ...
+    }
+
+=cut
+
+sub is_admin {
+    my ($self, $developer) = @_;
+		my ($dev) = $self->project_developers({ developer => $developer->id });
+		return $dev;
+}
+
+=head3 clear_admins
+
+Removes the 'admin' flag from any Developers associated with this Project.
+
+=cut
+
+sub clear_admins {
+    my ($self, @admins) = @_;
+    my $sth;
+		my @proj_devs;
+    if (@admins) {
+			@proj_devs = $self->project_developers( { developer => \@admins });
+    } else {
+			@proj_devs = $self->project_developers;
+    }
+		$_->update({ admin => 0 }) for @proj_devs;
+}
+
+=head3 set_admins
+
+Given a list of Developer id's, this method will set each Developer
+to be an admin of the Project.
+
+=cut
+
+sub set_admins {
+    my ($self, @admins) = @_;
+		for my $dev ($self->project_developers( { developer => \@admins })) {
+			$dev->update({ admin => 1 });
+		}
+}
+
+=head3 report_graph_data
+
+Will return an array of arrays (based on the given fields) that
+is suitable for feeding to GD::Graph. To limit the date range
+used to build the data, you can also pass a 'start' and 'stop'
+L<DateTime> parameter.
+
+    my $data = $project->report_graph_data(
+        fields  => [qw(total pass fail)],
+        start   => $start,
+        stop    => DateTime->today(),
+    );
+
+=cut
+
+#TODO rewrite without sql
+sub report_graph_data {
+    my ($self, %args) = @_;
+    my $fields = $args{fields};
+    my $start  = $args{start};
+    my $stop   = $args{stop};
+    my $tag    = $args{tag};
+    my @data;
+    my @bind_cols = ($self->id);
+
+    # we need the date before anything else
+    my $sql;
+    if ($tag) {
+        $sql =
+            "SELECT "
+          . join(', ', "added", @$fields)
+          . " FROM smoke_report sr"
+          . " JOIN smoke_report_tag srt ON (sr.id = srt.smoke_report)"
+          . " WHERE sr.project = ? AND sr.invalid = 0 AND srt.tag = ?";
+        push(@bind_cols, $tag);
+    } else {
+        $sql =
+            "SELECT "
+          . join(', ', "added", @$fields)
+          . " FROM smoke_report sr"
+          . " WHERE sr.project = ? AND sr.invalid = 0 ";
+    }
+
+    # if we need to limit by date
+    if ($start) {
+        $sql .= " AND DATE(sr.added) >= ? ";
+        push(@bind_cols, $start->strftime('%Y-%m-%d'));
+    }
+    if ($stop) {
+        $sql .= " AND DATE(sr.added) <= ? ";
+        push(@bind_cols, $stop->strftime('%Y-%m-%d'));
+    }
+
+    # add optional args
+    foreach my $extra_param qw(architecture platform) {
+        if ($args{$extra_param}) {
+            $sql .= " AND sr.$extra_param = ? ";
+            push(@bind_cols, $args{$extra_param});
+        }
+    }
+
+    # add the ORDER BY
+    $sql .= " ORDER BY sr.added ";
+
+    my $sth = Smolder::DBIConn::dbh()->prepare_cached($sql);
+    $sth->execute(@bind_cols);
+    while (my $row = $sth->fetchrow_arrayref()) {
+
+        # reformat added - used to do this in SQL with DATE_FORMAT(),
+        # but SQLite don't play that game
+        my ($year, $month, $day) = $row->[0] =~ /(\d{4})-(\d{2})-(\d{2})/;
+        $row->[0] = "$month/$day/$year";
+
+        for my $i (0 .. scalar(@$row) - 1) {
+            push(@{$data[$i]}, $row->[$i]);
+        }
+    }
+    return \@data;
+}
+
+=head3 platforms
+
+Returns an arrayref of all the platforms that have been associated with
+smoke tests uploaded for this project.
+
+=cut
+
+sub platforms {
+    my $self = shift;
+    my $sth  = Smolder::DBIConn::dbh()->prepare_cached(
+        q(
+        SELECT DISTINCT platform FROM smoke_report
+        WHERE platform != '' AND project = ? ORDER BY platform
+    )
+    );
+    $sth->execute($self->id);
+    my @plats;
+    while (my $row = $sth->fetchrow_arrayref) {
+        push(@plats, $row->[0]);
+    }
+    return \@plats;
+}
+
+=head3 architectures
+
+Returns a list of all the architectures that have been associated with
+smoke tests uploaded for this project.
+
+=cut
+
+sub architectures {
+    my $self = shift;
+    my $sth  = Smolder::DBIConn::dbh()->prepare_cached(
+        q(
+        SELECT DISTINCT architecture FROM smoke_report
+        WHERE architecture != '' AND project = ? ORDER BY architecture
+    )
+    );
+    $sth->execute($self->id);
+    my @archs;
+    while (my $row = $sth->fetchrow_arrayref) {
+        push(@archs, $row->[0]);
+    }
+    return \@archs;
+}
+
+=head3 graph_start_datetime
+
+Returns a L<DateTime> object that represents the real date for the value
+stored in the 'graph_start' column. For example, if the current date
+were March 17, 2006 and the project was started on Feb 20th, 2006 
+then the following values would become the following dates:
+
+    project => Feb 20th, 2006
+    year    => Jan 1st,  2006
+    month   => Mar 1st,  2006
+    week    => Mar 13th, 2006
+    day     => Mar 17th, 2006
+
+=cut
+
+sub graph_start_datetime {
+    my $self = shift;
+    my $dt;
+
+    # the project's start date
+    if ($self->graph_start eq 'project') {
+        $dt = $self->start_date;
+
+        # the first day of this year
+    } elsif ($self->graph_start eq 'year') {
+        $dt = DateTime->today()->set(
+            month => 1,
+            day   => 1,
+        );
+
+        # the first day of this month
+    } elsif ($self->graph_start eq 'month') {
+        $dt = DateTime->today()->set(day => 1);
+
+        # the first day of this week
+    } elsif ($self->graph_start eq 'week') {
+        $dt = DateTime->today;
+        my $day_diff = $dt->day_of_week - 1;
+        $dt->subtract(days => $day_diff) if ($day_diff);
+
+        # today
+    } elsif ($self->graph_start eq 'day') {
+        $dt = DateTime->today();
+    }
+    return $dt;
+}
+
+=head3 most_recent_report
+
+Returns the most recent L<Smolder::DB::SmokeReport> object that was added.
+
+=cut
+
+sub most_recent_report {
+    my $self = shift;
+		return $self->smoke_reports(undef, { order_by => { -desc => 'added' }, rows => 1 });
+}
 
 1;

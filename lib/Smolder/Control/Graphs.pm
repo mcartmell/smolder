@@ -68,7 +68,7 @@ sub start {
     my ($self, $tt_params) = @_;
     $tt_params ||= {};
 
-    my $project = $self->rs('Project')->retrieve($self->param('id'));
+    my $project = $self->rs('Project')->find($self->param('id'));
     return $self->error_message('Project does not exist')
       unless $project;
 
