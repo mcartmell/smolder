@@ -82,7 +82,6 @@ __PACKAGE__->add_callback(
             if ($value) {
                 $ai->parse($value);
                 if( $ai->id ) {
-									warn $ai->id;
                     $ENV{REMOTE_USER} = $ai->id;
                     @user_groups = @{$ai->groups};
                 }
