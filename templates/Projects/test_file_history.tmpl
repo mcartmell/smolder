@@ -15,6 +15,9 @@
    [% SET report = test.smoke_report %]
     <tr class=" results [% odd_even %]">
       <td>
+        <span style="float: right">
+          <img src="[% url_prefix %]/images/indicator.gif" style="visibility:hidden; border: none" id="indicator_[% loop.index %]" />
+        </span>
         <a class="testfile_label" href="/app/projects/report_details/[% report.id %]">
         <span class="filename[% IF test.failed %] fail[% END %]">
           [% report.added.strftime('%D %l:%M %p') %] [% IF report.architecture %][% "- " _ report.architecture %][% END %][% IF report.platform %][% "- " _ report.platform %][% END %]
