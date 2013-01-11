@@ -17,6 +17,8 @@ use warnings;
 
 use parent 'DBIx::Class::ResultSet';
 
+use Data::Random qw(rand_chars);
+
 sub get_guest {
     my $pkg = shift;
     my ($guest) = $pkg->search(

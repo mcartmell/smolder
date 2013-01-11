@@ -96,7 +96,7 @@ sub do_login {
     if ($dev) {
 
         # check to see if the password matches the encrypted one
-        if (crypt($pw, $dev->password) eq $dev->password) {
+        if ($dev->check_password($pw)) {
 
             # figure out which tokens to add
             my @groups = $dev->groups;

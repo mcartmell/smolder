@@ -189,13 +189,25 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-10 09:16:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:U56/fL4Shl2D/88z/Wnl7A
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-10 17:15:42
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rrcvwQMvDE5wKexRFNvuzg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 
 __PACKAGE__->many_to_many(projects => 'project_developers' => 'project');
+__PACKAGE__->load_components(qw/EncodedColumn/);
+__PACKAGE__->add_columns(
+    "password",
+    {
+        data_type           => "text",
+        encode_column       => 1,
+        encode_class        => 'Crypt::Eksblowfish::Bcrypt',
+        encode_args         => {key_nul => 0, cost => 8},
+        encode_check_method => 'check_password'
+    }
+);
+
 
 use Data::Random qw(rand_chars);
 
@@ -275,24 +287,5 @@ sub reset_password {
 
     return $new_pw;
 }
-
-sub _crypt_password {
-    my $self = shift;
-    my $salt = join('', rand_chars(set => 'alphanumeric', size => 2, shuffle => 1));
-    my ($pw) = ($self->_attrs('password'));
-    if ($pw) {
-        $self->_attribute_set(password => crypt($pw, $salt));
-    }
-}
-
-sub _crypt_if_changed {
-    my $self = shift;
-    if (grep { $_ eq 'password' } $self->is_changed()) {
-        $self->_crypt_password();
-    }
-}
-
-
-
 
 1;

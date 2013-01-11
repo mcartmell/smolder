@@ -2,6 +2,8 @@ package Smolder::DB;
 use strict;
 use warnings;
 use Smolder::Conf qw(SQLDir DataDir);
+use Smolder::DBIConn;
+use Smolder::Control;
 use DBI;
 use File::Spec::Functions qw(catfile);
 use DateTime::Format::Strptime;
@@ -367,9 +369,11 @@ sub create_database {
 
     # Set the db_version
     my $version = $Smolder::VERSION;
-    my $dbh     = $class->db_Main;
+    my $dbh     = $class->dbh;
     eval { $dbh->do("UPDATE db_version set db_version=$version") };
     die "Could not update db_version! $@" if $@;
+		my $rs = Smolder::Control::rs('Developer');
+		$rs->find(1)->update({password => 'qa_rocks'});
 }
 
 =head2 unique_failure_msg 
