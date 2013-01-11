@@ -149,10 +149,6 @@ sub image {
         %search_params,
     );
 
-    # send out our own headers
-    # XXX - fix to use CGI.pm no Apache to send no-cache image/png headers'
-    $self->header_type('none');
-
     # if we don't have any data, then just send the no_graph_data.png file
     if (scalar @$data == 0) {
         my $NO_DATA_FH;
@@ -160,7 +156,7 @@ sub image {
         open($NO_DATA_FH, '<', $file)
           or die "Could not open '$file' for reading: $!";
         local $/ = undef;
-        print <$NO_DATA_FH>;
+        return <$NO_DATA_FH>;
         close($NO_DATA_FH) or die "Could not close file '$file': $!";
     } else {
 
@@ -179,7 +175,7 @@ sub image {
             legend => \@legend,
             title  => $title,
         );
-        print $gd->png;
+        return $gd->png;
     }
 }
 
