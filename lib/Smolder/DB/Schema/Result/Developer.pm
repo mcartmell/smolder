@@ -266,9 +266,9 @@ object associated with that project and this Developer.
 =cut
 
 sub project_pref {
-    my $self = shift;
-		my ($project) = $self->project_developers({ project => $project->id });
-		return $project->preference if $project;
+    my ($self, $project) = @_;
+		my ($projdev) = $self->project_developers({ project => $project->id });
+		return $projdev->preference if $projdev;
 		return;
 }
 
