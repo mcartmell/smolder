@@ -736,10 +736,10 @@ sub test_file_history {
 
     my $limit  = $q->param('limit')  || 20;
     my $offset = $q->param('offset') || 0;
-    my @test_file_results = $self->rs('TestFileResult')->search_where(
+    my @test_file_results = $self->rs('TestFileResult')->search(
         {
-            project   => $project,
-            test_file => $test_file
+            project   => $project->id,
+            test_file => $test_file->id,
         },
         {
             limit_dialect => 'LimitOffset',
