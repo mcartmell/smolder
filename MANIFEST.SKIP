@@ -12,3 +12,8 @@ smolder.log
 \.bak
 data/smoke_reports/*
 \.pid
+^MYMETA\.yml$
+^MYMETA\.json$
+\.schema\.conf
+tap.tar.gz
+

@@ -8,7 +8,7 @@ use Smolder::Build;
 my $builder = Smolder::Build->new(
     module_name       => 'Smolder',
     license           => 'perl',
-    dist_author       => 'Michael Peters <mpeters@plusthree.com>',
+    dist_author       => 'Mike Cartmell <mcartmell@cpan.org>',
     dist_version_from => 'lib/Smolder.pm',
     requires          => {
         'CGI::Application'                           => 4.21,
@@ -19,16 +19,16 @@ my $builder = Smolder::Build->new(
         'CGI::Application::Plugin::Stream'           => 2.10,
         'CGI::Application::Plugin::TT'               => 1.04,
         'CGI::Application::Plugin::ValidateRM'       => 2.3,
-        'Class::DBI'                                 => 3.0,
-        'Class::DBI::AbstractSearch'                 => 0.07,
-        'Class::DBI::SQLite'                         => 0,
-        'Class::DBI::Plugin::RetrieveAll'            => 1.04,
+				'Crypt::Eksblowfish::Bcrypt'								 => 0.009,
         'Data::FormValidator'                        => 4.61,
         'Data::FormValidator::Constraints::DateTime' => 1.09,
         'Data::Random'                               => 0.05,
         'DateTime'                                   => 0.4501,
         'DateTime::Format::Strptime'                 => 0,
         'DBD::SQLite'                                => 1.20,
+				'DBIx::Class'																 => 0.08204,
+				'DBIx::Class::EncodedColumn'								 => 0.00011,
+				'DBIx::Connector'														 => 0.52,
         'Digest::MD5'                                => 0,
         'Email::Valid'                               => 0,
         'Exception::Class'                           => 1.23,
@@ -76,6 +76,9 @@ my $builder = Smolder::Build->new(
     add_to_cleanup     => ['data/*', 'logs/*', 'Smolder-*'],
     meta_add => {
         no_index => {
+						directory => [qw(
+								lib/Smolder/DB/Schema
+								)],
             file => [qw(
                 lib/Smolder/AuthHandler.pm
                 lib/Smolder/AuthInfo.pm
@@ -92,14 +95,6 @@ my $builder = Smolder::Build->new(
                 lib/Smolder/Control/Admin/Projects.pm
                 lib/Smolder/Control/Developer/Prefs.pm
                 lib/Smolder/Control/Public/Auth.pm
-                lib/Smolder/DB/Developer.pm
-                lib/Smolder/DB/Preference.pm
-                lib/Smolder/DB/ProjectDeveloper.pm
-                lib/Smolder/DB/Project.pm
-                lib/Smolder/DB/SmokeReport.pm
-                lib/Smolder/DB/TestFileComment.pm
-                lib/Smolder/DB/TestFile.pm
-                lib/Smolder/DB/TestFileResult.pm
                 lib/Smolder/DB.pm
                 lib/Smolder/Dispatch.pm
                 lib/Smolder/Email.pm
@@ -119,6 +114,7 @@ my $builder = Smolder::Build->new(
                 lib/Smolder/Upgrade/V1_30.pm
                 lib/Smolder/Upgrade/V1_37.pm
                 lib/Smolder/Upgrade/V1_50.pm
+                lib/Smolder/Upgrade/V2_0.pm
             )],
         },
     },

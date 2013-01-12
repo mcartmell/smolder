@@ -71,22 +71,29 @@ __PACKAGE__->add_callback(
     prerun => sub {
         my $self   = shift;
         my $q      = $self->query;
-				my $req = Plack::Request->new($q->env);
-        my $cookie = $req->cookies->{smolder};
+				my $cookie_val;
+				if ($ENV{PLACK_ENV}) {
+					my $req = Plack::Request->new($q->env);
+					my $cookie = $req->cookies->{smolder};
+					$cookie_val = $cookie;
+				}
+				else {
+					my $cookie = CGI::Cookie->fetch();
+					$cookie = $cookie->{smolder};
+					$cookie_val = $cookie->value if ref $cookie;
+				}
+
         my $ai = Smolder::AuthInfo->new();
         my @user_groups;
 				delete $ENV{REMOTE_USER};
 
         # make sure we have a cookie and a session
-        if ($cookie) {
-            my $value = $cookie;
-            if ($value) {
+        if (my $value = $cookie_val) {
                 $ai->parse($value);
                 if( $ai->id ) {
                     $ENV{REMOTE_USER} = $ai->id;
                     @user_groups = @{$ai->groups};
                 }
-            }
         }
 
         # log them in if the username and password are passed

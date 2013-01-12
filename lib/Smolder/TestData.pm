@@ -80,7 +80,7 @@ my $count = 0;
 
     sub delete_projects {
         foreach my $proj (@projects) {
-            if ($proj && ref $proj ne 'Class::DBI::Object::Has::Been::Deleted') {
+            if ($proj) {
                 $proj->delete();
             }
         }
