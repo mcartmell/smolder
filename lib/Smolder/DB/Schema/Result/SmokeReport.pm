@@ -262,8 +262,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-10 15:45:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yw49GZP7ucyNnUtZNO1fZA
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-12 18:42:05
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:On1Pfh9UGnmXUpYBoynLuQ
 
 __PACKAGE__->inflate_column('added', {
 		inflate => sub { Smolder::DB->parse_datetime(shift) },
@@ -653,7 +653,7 @@ sub update_from_tap_archive {
                     ) or die "could not find or create test file '$label'";
                     $self->result_source->schema->resultset('TestFileResult')->update_or_create(
                         {
-														added				 => Smolder::DB->format_datetime(DateTime->now),
+														added				 => time,
                             test_file    => $test_file->id,
                             smoke_report => $self->id,
                             project      => $self->project->id,
@@ -700,7 +700,7 @@ sub update_from_tap_archive {
         todo_pass  => scalar $aggregator->todo_passed,
         test_files => scalar @suite_results,
         failed     => 0 + $aggregator->failed,
-        duration   => $duration || '',
+        duration   => $duration,
 			}
     );
 

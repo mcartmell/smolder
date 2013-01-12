@@ -36,9 +36,9 @@ my %data  = (
 
 # add this $dev to $proj1 and $proj2
 my $proj_dev1 = Smolder::DB::rs('ProjectDeveloper')->create(
-    {developer => $dev, project => $proj1, preference => create_preference});
+    {added => DateTime->now, developer => $dev, project => $proj1, preference => create_preference});
 my $proj_dev2 = Smolder::DB::rs('ProjectDeveloper')->create(
-    {developer => $dev, project => $proj2, preference => create_preference});
+    {added => DateTime->now, developer => $dev, project => $proj2, preference => create_preference});
 
 END {
     $proj_dev1->delete() if $proj_dev1;

@@ -34,9 +34,9 @@ my $proj2_id = create_project(public => 0)->id();
 
 # add this $dev to $proj1 and $proj2
 my $proj1_dev = Smolder::DB::rs('ProjectDeveloper')->create(
-    {developer => $dev, project => $proj1_id, preference => create_preference()});
+    {added => DateTime->now, developer => $dev, project => $proj1_id, preference => create_preference()});
 my $proj2_dev = Smolder::DB::rs('ProjectDeveloper')->create(
-    {developer => $dev, project => $proj2_id, preference => create_preference()});
+    {added => DateTime->now, developer => $dev, project => $proj2_id, preference => create_preference()});
 
 END {
     delete_developers();

@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use DateTime;
 use Smolder::TestScript;
 use Smolder::TestData qw(
   base_url
@@ -30,9 +31,9 @@ my $proj2 = create_project();
 
 # add this $dev to $proj1 and $proj2
 my $proj_dev1 = Smolder::DB::rs('ProjectDeveloper')->create(
-    {developer => $dev, project => $proj1, preference => create_preference()});
+    {added => DateTime->now(), developer => $dev, project => $proj1, preference => create_preference()});
 my $proj_dev2 = Smolder::DB::rs('ProjectDeveloper')->create(
-    {developer => $dev, project => $proj2, preference => create_preference()});
+    {added => DateTime->now(), developer => $dev, project => $proj2, preference => create_preference()});
 
 END {
     delete_developers();

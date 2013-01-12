@@ -36,8 +36,9 @@ __PACKAGE__->table("project");
 
 =head2 start_date
 
-  data_type: 'integer'
-  is_nullable: 0
+  data_type: 'text'
+  default_value: (empty string)
+  is_nullable: 1
 
 =head2 public
 
@@ -101,7 +102,7 @@ __PACKAGE__->add_columns(
   "name",
   { data_type => "text", is_nullable => 0 },
   "start_date",
-  { data_type => "integer", is_nullable => 0 },
+  { data_type => "text", default_value => "", is_nullable => 1 },
   "public",
   { data_type => "integer", default_value => 1, is_nullable => 1 },
   "enable_feed",
@@ -226,8 +227,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-11 15:06:03
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ikao+SwdcMSDc6lNpgd5kQ
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-12 18:36:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bJuzv571xBYUQsG13Y0NMg
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

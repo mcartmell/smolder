@@ -38,6 +38,7 @@ my $project  = create_project();
 my $project2 = create_project();
 Smolder::DB::rs('ProjectDeveloper')->create(
     {
+				added => DateTime->now(),
         project    => $project,
         developer  => $dev,
         admin      => 1,
@@ -46,6 +47,7 @@ Smolder::DB::rs('ProjectDeveloper')->create(
 );
 Smolder::DB::rs('ProjectDeveloper')->create(
     {
+				added => DateTime->now(),
         project    => $project2,
         developer  => $dev,
         preference => create_preference(),

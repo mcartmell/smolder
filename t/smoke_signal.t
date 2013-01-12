@@ -80,6 +80,7 @@ SKIP: {
     # add this person to the project
     Smolder::DB::rs('ProjectDeveloper')->create(
         {
+						added => DateTime->now,
             project    => $project,
             developer  => $dev,
             preference => create_preference(),

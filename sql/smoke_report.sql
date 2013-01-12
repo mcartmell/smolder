@@ -2,7 +2,7 @@ CREATE TABLE smoke_report  (
     id              INTEGER PRIMARY KEY AUTOINCREMENT, 
     project         INTEGER NOT NULL, 
     developer       INTEGER NOT NULL, 
-    added           TEXT DEFAULT '',
+    added           TEXT NOT NULL,
     architecture    TEXT DEFAULT '',
     platform        TEXT DEFAULT '',
     pass            INTEGER DEFAULT 0,

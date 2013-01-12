@@ -37,6 +37,7 @@ my $proj1_dev = Smolder::DB::rs('ProjectDeveloper')->create(
         project    => $proj1_id,
         admin      => 1,
         preference => create_preference(),
+				added => DateTime->now,
     }
 );
 

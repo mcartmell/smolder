@@ -127,6 +127,7 @@ sub add_dev {
         eval {
             my $proj_dev = $self->rs('ProjectDeveloper')->create(
                 {
+										added			 => DateTime->now(),
                     project    => $proj,
                     developer  => $dev,
                     preference => $proj_pref,
