@@ -104,7 +104,7 @@ sub edit {
 
         # else get the developer in question
     } else {
-        my %developer_data = $developer->vars();
+        my %developer_data = $developer->get_columns;
         $output = HTML::FillInForm->new->fill(
             scalarref => $self->tt_process({developer => $developer}),
             fdat      => \%developer_data,
@@ -142,7 +142,7 @@ sub process_edit {
     my $developer = $self->rs('Developer')->find($id);
     return $self->error_message("Developer no longer exists!")
       unless $developer;
-    $developer->set(%$valid);
+    $developer->set_inflated_columns($valid);
 
     # we need to eval{} since we don't want there to be duplicate usernames (id)
     eval { $developer->update };
@@ -218,8 +218,7 @@ sub process_add {
         },
     };
 
-    my $results = $self->check_rm('add', $form)
-      || return $self->check_rm_error_page;
+    my $results = $self->check_rm('add', $form) || return $self->check_rm_error_page;
     my $valid = $results->valid();
 
     # create a new preference for this developer;

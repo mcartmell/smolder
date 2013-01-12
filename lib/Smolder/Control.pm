@@ -473,11 +473,8 @@ sub _create_dfv_msgs {
 }
 
 sub rs {
-	schema()->resultset(pop);
+	Smolder::DB::rs(@_);
 }
 
-sub schema {
-	return Smolder::DB::Schema->connect( sub { Smolder::DBIConn->instance->dbh });
-}
 
 1;
