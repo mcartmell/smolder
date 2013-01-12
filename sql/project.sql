@@ -1,7 +1,7 @@
 CREATE TABLE project (
     id                  INTEGER PRIMARY KEY AUTOINCREMENT, 
     name                TEXT NOT NULL,
-    start_date          INTEGER NOT NULL,
+    start_date          TEXT DEFAULT '',
     public              INTEGER DEFAULT 1,
     enable_feed         INTEGER DEFAULT 1,
     default_platform    TEXT DEFAULT '',
