@@ -407,7 +407,8 @@ for this Project
 
 sub admins {
 	my $self = shift;
-	return $self->developers({ 'me.admin' => 1 }, {join => 'project_developers'});
+	my @admins = $self->developers({ 'project_developers.admin' => 1 }, {join => 'project_developers'});
+	return @admins;
 }
 
 =head3 is_admin
@@ -424,7 +425,8 @@ for this Project.
 sub is_admin {
     my ($self, $developer) = @_;
 		my ($dev) = $self->project_developers({ developer => $developer->id });
-		return $dev;
+		return if !$dev;
+		return $dev->admin;
 }
 
 =head3 clear_admins
@@ -641,6 +643,59 @@ Returns the most recent L<Smolder::DB::SmokeReport> object that was added.
 sub most_recent_report {
     my $self = shift;
 		return $self->smoke_reports(undef, { order_by => { -desc => 'added' }, rows => 1 });
+}
+
+=head3 delete_tag
+
+Deletes a tag in the smoke_report_tag table for Smoke Reports associated with this Project.
+
+    $project->delete_tag("Something Old");
+
+=cut
+
+sub delete_tag {
+    my ($self, $tag) = @_;
+
+    # because SQL doesn't support multi-table deletes (with a USING clause)
+    # we need to resort to doing this in 2 steps
+    my $sth = Smolder::DBIConn->dbh->prepare_cached(
+        q/
+        SELECT id FROM smoke_report_tag WHERE tag = ?
+    /
+    );
+    $sth->execute($tag);
+    my $tag_ids = $sth->fetchall_arrayref([0]);
+
+    my $placeholders = join(', ', ('?') x scalar(@$tag_ids));
+    $sth = Smolder::DBIConn->dbh->prepare_cached(
+        qq/
+        DELETE FROM smoke_report_tag WHERE id IN ($placeholders)
+    /
+    );
+    $sth->execute(map { $_->[0] } @$tag_ids);
+}
+
+=head3 change_tag
+
+This method will change a tag of project's smoke reports into some other tag
+
+    $project->change_tag('Something', 'Something Else');
+
+=cut
+
+sub change_tag {
+    my ($self, $tag, $repl) = @_;
+
+    # because SQL doesn't support multi-table updates (with a USING clause)
+    # we need to resort to doing this in 2 steps
+    my $sth = Smolder::DBIConn->dbh->prepare_cached('SELECT id FROM smoke_report_tag WHERE tag = ?');
+    $sth->execute($tag);
+    my $tag_ids = $sth->fetchall_arrayref([0]);
+
+    my $placeholders = join(', ', ('?') x scalar(@$tag_ids));
+    $sth = Smolder::DBIConn->dbh->prepare_cached(
+        "UPDATE smoke_report_tag SET tag = ? WHERE id IN ($placeholders)");
+    $sth->execute($repl, map { $_->[0] } @$tag_ids);
 }
 
 1;

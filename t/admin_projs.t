@@ -94,7 +94,6 @@ $mech->content_contains('Projects');
 
     $mech->content_contains('class="required warn">Start Date');
     $mech->content_contains('Invalid Start Date');
-		warn $mech->content;
     $mech->content_contains('class="required warn">Public Project');
     $mech->content_contains('class="required warn">Data Feeds');
     $mech->content_contains('class="required warn">Number of Full Reports Saved');

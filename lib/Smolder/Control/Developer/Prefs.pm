@@ -67,7 +67,7 @@ sub process_change_pw {
             # make sure it's the right encrypted pw
             current_pw => sub {
                 my ($dfv, $val) = @_;
-                if (crypt($val, $dev->password) eq $dev->password) {
+                if ($dev->check_password($val)) {
                     return $val;
                 } else {
                     return;
@@ -96,8 +96,7 @@ sub process_change_pw {
       || return $self->check_rm_error_page();
     my $valid = $results->valid();
 
-    $dev->password($valid->{new_pw});
-    $dev->update();
+    $dev->update({ password => $valid->{new_pw} });
     $self->add_message(msg => "Password successfully changed.");
     return $self->change_pw();
 }
@@ -185,7 +184,7 @@ sub update_pref {
         $pref->update();
 
         # is this the default pref?
-        if ($pref->id eq $self->developer->preference) {
+        if ($pref->id eq $self->developer->preference->id) {
             $self->add_message(msg => "Default preferences successfully updated.");
         } else {
             $self->add_message(msg => "Preference for project '"
@@ -195,7 +194,7 @@ sub update_pref {
     }
 
     # if we are updating the default pref and they want to sync them
-    if ($self->query->param('sync') && ($pref->id eq $self->developer->preference)) {
+    if ($self->query->param('sync') && ($pref->id eq $self->developer->preference->id)) {
         my @projs = $self->developer->project_developers;
         foreach my $proj (@projs) {
             $proj->preference->set_inflated_columns($valid);

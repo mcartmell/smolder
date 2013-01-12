@@ -699,8 +699,8 @@ sub update_from_tap_archive {
         todo       => scalar $aggregator->todo,
         todo_pass  => scalar $aggregator->todo_passed,
         test_files => scalar @suite_results,
-        failed     => !!$aggregator->failed,
-        duration   => $duration,
+        failed     => 0 + $aggregator->failed,
+        duration   => $duration || '',
 			}
     );
 
@@ -709,8 +709,8 @@ sub update_from_tap_archive {
     if ($meta->{extra_properties}) {
         foreach my $k (keys %{$meta->{extra_properties}}) {
             foreach my $field qw(architecture platform comments) {
-                if (lc($k) eq $field && !$self->get($field)) {
-                    $self->set($field => delete $meta->{extra_properties}->{$k});
+                if (lc($k) eq $field && !defined $self->$field) {
+                    $self->set_inflated_columns({ $field => delete $meta->{extra_properties}->{$k} });
                     last;
                 }
             }
@@ -724,7 +724,7 @@ sub update_from_tap_archive {
         meta         => $meta,
     );
     $matrix->generate_html();
-    $self->update();
+    $self->update;
 
     return \@suite_results;
 }

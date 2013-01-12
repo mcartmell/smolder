@@ -12,16 +12,16 @@ use Smolder::TestData qw(
   create_preference
   delete_preferences
 );
-use Smolder::DB::ProjectDeveloper;
+use Smolder::DB;
 use Carp;
 $SIG{__DIE__} = \*Carp::confess;
 
 plan(tests => 51);
 
 # 1..3
-use_ok('Smolder::DB::Project');
+use_ok('Smolder::DB::Schema::Result::Project');
 my $project = create_project();
-isa_ok($project,             'Smolder::DB::Project');
+isa_ok($project,             'Smolder::DB::Schema::Result::Project');
 isa_ok($project->start_date, 'DateTime');
 END { delete_projects }
 
@@ -35,7 +35,7 @@ END {
     delete_developers;
     delete_preferences;
 }
-Smolder::DB::ProjectDeveloper->create(
+Smolder::DB::rs('ProjectDeveloper')->create(
     {
         developer   => $dev1,
         project     => $project,
@@ -43,7 +43,7 @@ Smolder::DB::ProjectDeveloper->create(
         preference  => create_preference(),
     }
 );
-Smolder::DB::ProjectDeveloper->create(
+Smolder::DB::rs('ProjectDeveloper')->create(
     {
         developer  => $dev2,
         project    => $project,
@@ -51,7 +51,7 @@ Smolder::DB::ProjectDeveloper->create(
         preference => create_preference(),
     }
 );
-Smolder::DB::ProjectDeveloper->create(
+Smolder::DB::rs('ProjectDeveloper')->create(
     {
         developer  => $dev3,
         project    => $project,
@@ -74,7 +74,7 @@ is($admins[1]->id, $dev2->id);
 $project->clear_admins();
 @admins = $project->admins();
 is(scalar @admins, 0);
-$project->set_admins($dev2, $dev3);
+$project->set_admins($dev2->id, $dev3->id);
 @admins = $project->admins();
 is(scalar @admins, 2);
 is($admins[0]->id, $dev2->id);
@@ -85,7 +85,7 @@ ok(!$project->is_admin($dev1));
 # 17..19
 # all names
 my $project2 = create_project();
-my @names    = Smolder::DB::Project->all_names();
+my @names    = Smolder::DB::Schema::ResultSet::Project->all_names();
 cmp_ok(scalar @names, '>=', 2);
 ok(grep { $project->name  eq $_ } @names);
 ok(grep { $project2->name eq $_ } @names);

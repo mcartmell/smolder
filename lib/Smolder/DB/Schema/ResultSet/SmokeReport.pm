@@ -79,7 +79,7 @@ sub upload_report {
     my ($class, %args) = @_;
 
     my $file    = $args{file};
-    my $dev     = $args{developer} ||= $class->schema->resultset('Developer')->get_guest();
+    my $dev     = $args{developer} ||= Smolder::DB::rs('Developer')->get_guest()->id;
     my $project = $args{project};
 
     # create our initial report

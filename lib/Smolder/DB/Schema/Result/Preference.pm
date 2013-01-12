@@ -139,7 +139,7 @@ __PACKAGE__->inflate_column('email_sent_timestamp', {
 sub project {
 	my $self = shift;
 	my ($proj_dev) = $self->project_developers;
-	return $proj_dev->project;
+	return $proj_dev ? $proj_dev->project : (); 
 }
 
 sub email_types {

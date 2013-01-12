@@ -3,10 +3,11 @@ use warnings;
 
 use Test::More;
 use Smolder::TestScript;
+use Smolder::DB;
 plan(tests => 12);
 
 # 1
-use_ok('Smolder::DB::Preference');
+use_ok('Smolder::DB::Schema::Result::Preference');
 
 # 2..5
 # create
@@ -14,9 +15,9 @@ my $data = {
     email_type => 'link',
     email_freq => 'on_fail',
 };
-my $pref = Smolder::DB::Preference->create($data);
+my $pref = Smolder::DB::rs('Preference')->create($data);
 ok(defined $pref, 'valid data');
-isa_ok($pref, 'Smolder::DB::Preference');
+isa_ok($pref, 'Smolder::DB::Schema::Result::Preference');
 is($pref->email_type, $data->{email_type});
 is($pref->email_freq, $data->{email_freq});
 

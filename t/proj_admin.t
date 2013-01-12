@@ -15,7 +15,6 @@ use Smolder::TestData qw(
   delete_preferences
 );
 use Smolder::Mech;
-use Smolder::DB::ProjectDeveloper;
 use Smolder::Conf;
 use File::Spec::Functions qw(catfile);
 
@@ -32,7 +31,7 @@ my $dev      = create_developer(password => $pw);
 my $proj1_id = create_project(public => 0)->id();
 
 # add this $dev to $proj1
-my $proj1_dev = Smolder::DB::ProjectDeveloper->create(
+my $proj1_dev = Smolder::DB::rs('ProjectDeveloper')->create(
     {
         developer  => $dev,
         project    => $proj1_id,
@@ -76,7 +75,7 @@ $mech->content_contains('My Projects');
     $proj1->update();
 
     # is form pre-filled
-    $mech->get_ok("$url/$proj1");
+    $mech->get_ok("$url/$proj1_id");
     $mech->content_contains('Settings');
     $mech->content_contains('checked="checked" value="1"');
     $mech->content_contains('value="Foo"');
@@ -102,7 +101,7 @@ $mech->content_contains('My Projects');
 
     my $proj_id = $proj1->id;
     $proj1 = undef;
-    $proj1 = Smolder::DB::Project->retrieve($proj_id);
+    $proj1 = Smolder::DB::rs('Project')->find($proj_id);
     foreach (keys %settings) {
         is($proj1->$_, $settings{$_});
     }
@@ -112,7 +111,7 @@ sub _get_proj {
     my (@ids) = @_;
     my @projs;
     foreach my $id (@ids) {
-        push(@projs, Smolder::DB::Project->retrieve($id));
+        push(@projs, Smolder::DB::rs('Project')->find($id));
     }
     if (wantarray) {
         return @projs;

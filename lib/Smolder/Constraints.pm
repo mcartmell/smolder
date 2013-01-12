@@ -76,8 +76,8 @@ Returns regex that assures the data is simply an unsigned integer
 
 sub unsigned_int {
     return sub {
-			return $_[1] if $_[1] =~ qr/^\d+$/;
-			return;
+			my ($dfv, $val) = @_;
+			return $val =~ /^\d+$/;
 		}
 }
 
@@ -88,10 +88,7 @@ Returns a regex that assures the data is either a '1' or a '0'
 =cut
 
 sub bool {
-    return sub {
-			return $_[1] if $_[1] =~ qr/^1|0$/;
-			return;
-		}
+	return qr/^[01]/;
 }
 
 =head2 length_max
@@ -136,7 +133,7 @@ sub length_between {
     my $rx = qr/^[[:print:]]{$min,$max}$/;
 		return sub { 
 			my ($dfv, $val) = @_;
-			$val =~ $rx;
+			$val =~ $rx ? $val : undef;
 		}
 }
 

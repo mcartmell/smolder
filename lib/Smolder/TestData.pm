@@ -238,7 +238,7 @@ Delete the tags with the given names
 
 sub delete_tags {
     my @tags = @_;
-    my $sth  = Smolder::DBIConn::db()->prepare_cached('DELETE FROM smoke_report_tag WHERE tag = ?');
+    my $sth  = Smolder::DBIConn::dbh()->prepare_cached('DELETE FROM smoke_report_tag WHERE tag = ?');
     foreach my $t (@tags) {
         $sth->execute($t);
     }

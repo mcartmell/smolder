@@ -2,11 +2,11 @@ package Smolder::DB;
 use strict;
 use warnings;
 use Smolder::Conf qw(SQLDir DataDir HostName Port);
-use Smolder::DBIConn;
-use Smolder::Control;
-use DBI;
+use Smolder::DBIConn ();
+use Smolder::Control ();
+use DBI ();
 use File::Spec::Functions qw(catfile);
-use DateTime::Format::Strptime;
+use DateTime::Format::Strptime ();
 
 =head1 NAME
 

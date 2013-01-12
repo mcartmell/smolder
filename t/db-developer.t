@@ -15,17 +15,17 @@ use Smolder::TestData qw(
 plan(tests => 15);
 
 # 1
-use_ok('Smolder::DB::Developer');
+use_ok('Smolder::DB::Schema::Result::Developer');
 
 # 2..4
 # creation, etc
 my $dev = create_developer();
-isa_ok($dev, 'Smolder::DB::Developer');
+isa_ok($dev, 'Smolder::DB::Schema::Result::Developer');
 my $new_pw = 'stuff';
 $dev->password($new_pw);
 $dev->update();
 isnt($dev->password, $new_pw, 'pw encrypted');
-isa_ok($dev->preference, 'Smolder::DB::Preference');
+isa_ok($dev->preference, 'Smolder::DB::Schema::Result::Preference');
 
 # 5..10
 # assign to projects, etc
@@ -36,7 +36,7 @@ END {
 }
 my $project  = create_project();
 my $project2 = create_project();
-Smolder::DB::ProjectDeveloper->create(
+Smolder::DB::rs('ProjectDeveloper')->create(
     {
         project    => $project,
         developer  => $dev,
@@ -44,7 +44,7 @@ Smolder::DB::ProjectDeveloper->create(
         preference => create_preference(),
     }
 );
-Smolder::DB::ProjectDeveloper->create(
+Smolder::DB::rs('ProjectDeveloper')->create(
     {
         project    => $project2,
         developer  => $dev,
@@ -65,8 +65,8 @@ ok(      $projects[1]->id == $proj_devs[0]->project->id
 
 # 11..13
 # project_pref
-isa_ok($dev->project_pref($project),  'Smolder::DB::Preference');
-isa_ok($dev->project_pref($project2), 'Smolder::DB::Preference');
+isa_ok($dev->project_pref($project),  'Smolder::DB::Schema::Result::Preference');
+isa_ok($dev->project_pref($project2), 'Smolder::DB::Schema::Result::Preference');
 isnt($dev->project_pref($project)->id, $dev->project_pref($project2));
 
 # 14

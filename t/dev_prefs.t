@@ -14,7 +14,6 @@ use Smolder::TestData qw(
   delete_projects
   db_field_value
 );
-use Smolder::DB::ProjectDeveloper;
 use Smolder::Mech;
 
 if (is_smolder_running) {
@@ -36,9 +35,9 @@ my %data  = (
 );
 
 # add this $dev to $proj1 and $proj2
-my $proj_dev1 = Smolder::DB::ProjectDeveloper->create(
+my $proj_dev1 = Smolder::DB::rs('ProjectDeveloper')->create(
     {developer => $dev, project => $proj1, preference => create_preference});
-my $proj_dev2 = Smolder::DB::ProjectDeveloper->create(
+my $proj_dev2 = Smolder::DB::rs('ProjectDeveloper')->create(
     {developer => $dev, project => $proj2, preference => create_preference});
 
 END {

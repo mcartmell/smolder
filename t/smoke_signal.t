@@ -5,8 +5,6 @@ use File::Spec::Functions qw(catfile);
 use File::Basename qw(basename);
 use Smolder::TestScript;
 use Smolder::Conf qw(HostName Port);
-use Smolder::DB::SmokeReport;
-use Smolder::DB::ProjectDeveloper;
 use Cwd qw(cwd);
 use Smolder::TestData qw(
   is_smolder_running
@@ -26,7 +24,8 @@ if (is_smolder_running) {
 }
 
 my $bin          = catfile(cwd(), 'bin', 'smolder_smoke_signal');
-my $host         = HostName() . ':' . Port();
+my $host         = HostName();
+my $port				 = Port();
 my $project      = create_project(public => 0);
 my $project_name = $project->name;
 my $pw           = 's3cr3t';
@@ -44,14 +43,14 @@ END {
 # test required options
 my $out = `$bin 2>&1`;
 like($out, qr/Missing required field 'server'/i, 'missing --server');
-$out = `$bin --server $host 2>&1`;
+$out = `$bin --server $host --port $port 2>&1`;
 like($out, qr/Missing required field 'project'/i, 'missing --project');
-$out = `$bin --server $host --project $project_name --username $username --password $pw 2>&1`;
+$out = `$bin --server $host --port $port --project $project_name --username $username --password $pw 2>&1`;
 like($out, qr/Missing required field 'file'/i, 'missing --file');
 
 # invalid file
 $out =
-  `$bin --server $host --project $project_name --username $username --password $pw --file stuff 2>&1`;
+  `$bin --server $host --port $port --project $project_name --username $username --password $pw --file stuff 2>&1`;
 like($out, qr/does not exist/i, 'invalid file');
 
 # invalid server
@@ -63,23 +62,23 @@ SKIP: {
 
     # non-existant project
     $out =
-      `$bin --server $host --project "${project_name}asdf" --username $username --password $pw --file $good_run_gz 2>&1`;
+      `$bin --server $host --port $port --project "${project_name}asdf" --username $username --password $pw --file $good_run_gz 2>&1`;
     skip("Smolder not running", 14)
       if ($out =~ /Received status 500/);
     like($out, qr/do not have access/i, 'non-existant project');
 
     # invalid login
     $out =
-      `$bin --server $host --project "$project_name" --username $username --password asdf --file $good_run_gz 2>&1`;
+      `$bin --server $host --port $port --project "$project_name" --username $username --password asdf --file $good_run_gz 2>&1`;
     like($out, qr/Could not login/i, 'bad login credentials');
 
     # non-project-member
     $out =
-      `$bin --server $host --project "$project_name" --username $username --password $pw --file $good_run_gz 2>&1`;
+      `$bin --server $host --port $port --project "$project_name" --username $username --password $pw --file $good_run_gz 2>&1`;
     like($out, qr/do not have access/i, 'not a member of the project');
 
     # add this person to the project
-    Smolder::DB::ProjectDeveloper->create(
+    Smolder::DB::rs('ProjectDeveloper')->create(
         {
             project    => $project,
             developer  => $dev,
@@ -90,48 +89,48 @@ SKIP: {
 
     # successful tar.gz upload
     $out =
-      `$bin --server $host --project "$project_name" --username $username --password $pw --file $good_run_gz 2>&1`;
+      `$bin --server $host --port $port --project "$project_name" --username $username --password $pw --file $good_run_gz 2>&1`;
     like($out, qr/successfully uploaded/i, 'Successful .tar.gz upload');
 
     # make sure it's uploaded to the server
     $out =~ /as #(\d+)/;
     my $report_id = $1;
-    my $report    = Smolder::DB::SmokeReport->retrieve($report_id);
-    isa_ok($report, 'Smolder::DB::SmokeReport', 'report obj from .tar.gz');
+    my $report    = Smolder::DB::rs('SmokeReport')->find($report_id);
+    isa_ok($report, 'Smolder::DB::Schema::Result::SmokeReport', 'report obj from .tar.gz');
     Smolder::DB->disconnect();
 
     # succesful tar upload
     $out =
-      `$bin --server $host --project "$project_name" --username $username --password $pw --file $good_run 2>&1`;
+      `$bin --server $host --port $port --project "$project_name" --username $username --password $pw --file $good_run 2>&1`;
     like($out, qr/successfully uploaded/i, 'Successful .tar upload');
 
     # make sure it's uploaded to the server
     $out =~ /as #(\d+)/;
     $report_id = $1;
-    $report    = Smolder::DB::SmokeReport->retrieve($report_id);
-    isa_ok($report, 'Smolder::DB::SmokeReport', 'report obj from .tar');
+    $report    = Smolder::DB::rs('SmokeReport')->find($report_id);
+    isa_ok($report, 'Smolder::DB::Schema::Result::SmokeReport', 'report obj from .tar');
     Smolder::DB->disconnect();
 
     # test optional options
     # comments
     my $comments = "Some tests";
     $out =
-      `$bin --server $host --project "$project_name" --username $username --password $pw --file $good_run_gz --comments "$comments" 2>&1`;
+      `$bin --server $host --port $port --project "$project_name" --username $username --password $pw --file $good_run_gz --comments "$comments" 2>&1`;
     like($out, qr/successfully uploaded/i, 'successfully uploaded w/comments');
     $out =~ /as #(\d+)/;
     $report_id = $1;
-    $report    = Smolder::DB::SmokeReport->retrieve($report_id);
+    $report    = Smolder::DB::rs('SmokeReport')->find($report_id);
     is($report->comments, $comments, 'correct comments');
     Smolder::DB->disconnect();
 
     # platform
     my $platform = "my platform";
     $out =
-      `$bin --server $host --project "$project_name" --username $username --password $pw --file $good_run_gz --comments "$comments" --platform "$platform" 2>&1`;
+      `$bin --server $host --port $port --project "$project_name" --username $username --password $pw --file $good_run_gz --comments "$comments" --platform "$platform" 2>&1`;
     like($out, qr/successfully uploaded/i, 'successful upload w/platform info');
     $out =~ /as #(\d+)/;
     $report_id = $1;
-    $report    = Smolder::DB::SmokeReport->retrieve($report_id);
+    $report    = Smolder::DB::rs('SmokeReport')->find($report_id);
     is($report->comments, $comments, 'correct comments');
     is($report->platform, $platform, 'correct platform');
     Smolder::DB->disconnect();
@@ -139,11 +138,11 @@ SKIP: {
     # architecture
     my $arch = "128 bit something";
     $out =
-      `$bin --server $host --project "$project_name" --username $username --password $pw --file $good_run_gz --comments "$comments" --platform "$platform" --architecture "$arch" 2>&1`;
+      `$bin --server $host --port $port --project "$project_name" --username $username --password $pw --file $good_run_gz --comments "$comments" --platform "$platform" --architecture "$arch" 2>&1`;
     like($out, qr/successfully uploaded/i, 'successful upload w/arch');
     $out =~ /as #(\d+)/;
     $report_id = $1;
-    $report    = Smolder::DB::SmokeReport->retrieve($report_id);
+    $report    = Smolder::DB::rs('SmokeReport')->find($report_id);
     is($report->comments,     $comments, 'correct comments');
     is($report->platform,     $platform, 'correct platform');
     is($report->architecture, $arch, 'correct arch');
@@ -153,14 +152,14 @@ SKIP: {
     my @tags = ("Foo", "My Bar");
     Smolder::DB->disconnect();
     my $cmd =
-      qq($bin --server $host --project "$project_name" --username $username --password $pw --file $good_run_gz --comments "$comments" --platform "$platform" --architecture "$arch" --tags ")
+      qq($bin --server $host --port $port --project "$project_name" --username $username --password $pw --file $good_run_gz --comments "$comments" --platform "$platform" --architecture "$arch" --tags ")
       . join(', ', @tags)
       . qq(" 2>&1);
     $out = `$cmd`;
     like($out, qr/successfully uploaded/i, 'successful upload w/tags');
     $out =~ /as #(\d+)/;
     $report_id = $1;
-    $report    = Smolder::DB::SmokeReport->retrieve($report_id);
+    $report    = Smolder::DB::rs('SmokeReport')->find($report_id);
     is($report->comments,     $comments, 'correct comments');
     is($report->platform,     $platform, 'correct platform');
     is($report->architecture, $arch, 'correct arch');
@@ -174,17 +173,16 @@ SKIP: {
     Smolder::DB->disconnect();
 
     # non-public project anonymous 
-    $cmd = qq($bin --server $host --project "$project_name" --file $good_run_gz --comments "$comments" --platform "$platform" 2>&1);
+    $cmd = qq($bin --server $host --port $port --project "$project_name" --file $good_run_gz --comments "$comments" --platform "$platform" 2>&1);
     $out = `$cmd`;
     like($out, qr/not a public project/i, 'not a public project');
     Smolder::DB->disconnect();
 
     # invalid anonymous upload
     $project->public(1);
-    $project->allow_anon(0);
-    $project->update();
+    $project->update({ allow_anon => 0 });
     Smolder::DB->disconnect();
-    $cmd = qq($bin --server $host --project "$project_name" --file $good_run_gz --comments "$comments" --platform "$platform" 2>&1);
+    $cmd = qq($bin --server $host --port $port --project "$project_name" --file $good_run_gz --comments "$comments" --platform "$platform" 2>&1);
     $out = `$cmd`;
     like($out, qr/not allow anonymous/i, 'no anonymous uploads');
     Smolder::DB->disconnect();
@@ -193,12 +191,12 @@ SKIP: {
     $project->allow_anon(1);
     $project->update();
     Smolder::DB->disconnect();
-    $cmd = qq($bin --server $host --project "$project_name" --file $good_run_gz --comments "$comments" --platform "$platform" 2>&1);
+    $cmd = qq($bin --server $host --port $port --project "$project_name" --file $good_run_gz --comments "$comments" --platform "$platform" 2>&1);
     $out = `$cmd`;
     like($out, qr/successfully uploaded/i, 'successful anonymous upload');
     $out =~ /as #(\d+)/;
     $report_id = $1;
-    $report    = Smolder::DB::SmokeReport->retrieve($report_id);
+    $report    = Smolder::DB::rs('SmokeReport')->find($report_id);
     is($report->comments,     $comments, 'correct comments');
     is($report->platform,     $platform, 'correct platform');
     Smolder::DB->disconnect();

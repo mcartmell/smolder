@@ -277,10 +277,11 @@ sub process_add {
             max_reports  => unsigned_int(),
             vcs_rev_url => [length_max(255)],
         },
+				untaint_constraint_fields => [qw/start_date/],
     };
 
-    my $results = $self->check_rm(($id ? 'edit' : 'add'), $form)
-      || return $self->check_rm_error_page;
+    my $results = $self->check_rm(($id ? 'edit' : 'add'), $form);
+		return $self->check_rm_error_page if !$results;
     my $valid = $results->valid();
     $valid->{name} = delete $valid->{project_name};
 
