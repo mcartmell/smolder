@@ -165,8 +165,10 @@ sub remove_dev {
 
     if ($dev && $proj) {
         $self->rs('ProjectDeveloper')->find(
+				{
             developer => $dev,
             project   => $proj,
+				}
         )->delete();
 
         $self->add_message(msg => "Developer '"

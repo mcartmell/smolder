@@ -407,7 +407,7 @@ for this Project
 
 sub admins {
 	my $self = shift;
-	return $self->developers({ 'me.admin' => 1 }, join => 'project_developers');
+	return $self->developers({ 'me.admin' => 1 }, {join => 'project_developers'});
 }
 
 =head3 is_admin

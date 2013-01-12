@@ -75,7 +75,10 @@ Returns regex that assures the data is simply an unsigned integer
 =cut
 
 sub unsigned_int {
-    return qr/^\d+$/;
+    return sub {
+			return $_[1] if $_[1] =~ qr/^\d+$/;
+			return;
+		}
 }
 
 =head2 bool
@@ -85,7 +88,10 @@ Returns a regex that assures the data is either a '1' or a '0'
 =cut
 
 sub bool {
-    return qr/^1|0$/;
+    return sub {
+			return $_[1] if $_[1] =~ qr/^1|0$/;
+			return;
+		}
 }
 
 =head2 length_max
