@@ -1005,7 +1005,7 @@ var myrules = {
     '#toggle_tests_trigger' : function(el) {
     	el.onchange = function() {
             var count = 0;
-            $$('.tap tbody').each(function(row) {
+            $$('.tap tbody tr.results').each(function(row) {
                 if( el.checked ) {
                     if( row.hasClassName('passed') ) {
                         row.hide();
