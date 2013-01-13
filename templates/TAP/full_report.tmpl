@@ -117,8 +117,7 @@
   </thead>
   [%- SET found_first_failure = 0 -%]
   [%- FOREACH test IN results -%]
-  <tbody id="test_[% loop.index %]" class="results [% odd_even %] [% UNLESS test.failed %]passed[% END %]">
-    <tr>
+  <tr id="test_[% loop.index %]" class="results [% odd_even %] [% UNLESS test.failed %]passed[% END %]">
       [%- UNLESS email -%]
       <td width="5%"><input type="checkbox" name="testfiles" value="[% test.test_file %]" onchange="toggle_testfile_menu(this)"></td>
       [%- END -%]
@@ -140,16 +139,15 @@
             id="for_testfile_details_[% test.file_index %]"
             class="details_trigger show_indicator_[% test.file_index %]">[% test.percent %]%</a>
       </td>
-    </tr>
-    <tr>
+  </tr>
+  <tr id="testfile_details_[% test.file_index %]_row" style="display: none">
       <td colspan="[% IF email %]3[% ELSE %]4[% END %]">
-        <div id="testfile_details_[% test.file_index %]" class="testfile_details" style="display:none"></div>
+        <div id="testfile_details_[% test.file_index %]" class="testfile_details"></div>
         <div id="testfile_details_[% test.file_index %]_tap_stream" class="testfile_tap_stream" style="display:none; text-align: right">
           <a href="[% url_prefix %]/app/projects/tap_stream/[% report.id %]/[% test.file_index %]" target="_blank">TAP &#187;</a>
         </div>
       </td>
-    </tr>
-  </tbody>
+  </tr>
   [%- END %]
   <tfoot>
     <tr class="[% odd_even %]">

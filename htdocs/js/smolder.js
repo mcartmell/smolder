@@ -959,14 +959,17 @@ var myrules = {
         // get the id of the target div
         var matches = el.id.match(/^for_(.*)$/);
         var target = matches[1];
+				var target_row = target + '_row';
         // get the id of the indicator image
         matches = el.className.match(/(^|\s)show_(\S*)($|\s)/);
         var indicator = matches[2];
 
         el.onclick = function() {
-            if( Element.visible(target) ) {
+            if( Element.visible(target_row) ) {
                 $(target + '_tap_stream').hide();
-                Effect.BlindUp(target, { duration: .1 });
+                Effect.BlindUp(target, { duration: 0.1, afterFinish: function() {
+									$(target_row).hide();
+								} });
             } else {
                 $(indicator).style.visibility = 'visible';
                 Smolder.Ajax.update({
@@ -975,6 +978,7 @@ var myrules = {
                     indicator  : 'none',
                     onComplete : function() {
                         window.setTimeout(function() { $(indicator).style.visibility = 'hidden'}, 200);
+												$(target_row).show();
                         Effect.BlindDown(
                             target,
                             // reapply any dynamic bits
