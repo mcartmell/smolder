@@ -2,6 +2,7 @@ use strict;
 use warnings;
 
 use Test::More;
+use Smolder::DB;
 use Smolder::TestScript;
 use Smolder::TestData qw(
   create_project
@@ -15,7 +16,7 @@ use Smolder::TestData qw(
 plan(tests => 7);
 
 # 1
-use_ok('Smolder::DB::ProjectDeveloper');
+use_ok('Smolder::DB::Schema::Result::ProjectDeveloper');
 
 END {
     delete_projects();
@@ -25,18 +26,19 @@ END {
 
 # 2..6
 # creation
-my $proj_dev = Smolder::DB::ProjectDeveloper->create(
+my $proj_dev = Smolder::DB::rs('ProjectDeveloper')->create(
     {
         project    => create_project(),
         developer  => create_developer(),
         preference => create_preference(),
+				added			 => DateTime->now(),
     }
 );
-isa_ok($proj_dev,             'Smolder::DB::ProjectDeveloper');
+isa_ok($proj_dev,             'Smolder::DB::Schema::Result::ProjectDeveloper');
 isa_ok($proj_dev->added,      'DateTime');
-isa_ok($proj_dev->project,    'Smolder::DB::Project');
-isa_ok($proj_dev->developer,  'Smolder::DB::Developer');
-isa_ok($proj_dev->preference, 'Smolder::DB::Preference');
+isa_ok($proj_dev->project,    'Smolder::DB::Schema::Result::Project');
+isa_ok($proj_dev->developer,  'Smolder::DB::Schema::Result::Developer');
+isa_ok($proj_dev->preference, 'Smolder::DB::Schema::Result::Preference');
 
 # 7
 # delete

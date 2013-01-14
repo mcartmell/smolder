@@ -2,7 +2,6 @@ package Smolder::Control::Projects;
 use base 'Smolder::Control';
 use strict;
 use warnings;
-use CGI::Application::Plugin::Stream qw(stream_file);
 use DateTime;
 use Smolder::Conf qw(HostName);
 use Smolder::Util;
@@ -19,6 +18,7 @@ use Exception::Class;
 use HTML::TagCloud;
 use URI::Escape qw(uri_escape);
 use XML::Atom::SimpleFeed;
+use File::Slurp qw(slurp);
 
 =head1 NAME
 
@@ -73,7 +73,7 @@ F<Projects/smoke_report_details.tmpl> template.
 
 sub smoke_test_validity {
     my $self   = shift;
-    my $report = $self->rs('SmokeReport')->find($self->param('id'));
+    my $report = $self->param('id') ? $self->rs('SmokeReport')->find($self->param('id')) : undef;
     return $self->error_message("Smoke Report does not exist!")
       unless $report;
 
@@ -232,6 +232,7 @@ sub process_add_report {
             ),
             tags => smoke_report_tags(),
         },
+				untaint_constraint_fields => [qw/report_file tags/],
     };
 
     my $results = $self->check_rm('add_report', $form)
@@ -332,7 +333,7 @@ sub smoke_reports {
             offset => unsigned_int(),
         },
     };
-    return $self->error_message('Something fishy')
+    return $self->error_message('Something fishy1')
       unless Data::FormValidator->check($query, $form);
 
     $tt_params->{project} = $project;
@@ -411,9 +412,10 @@ sub tap_archive {
 
     # make sure ths developer is a member of this project
     return $self->error_message('Unauthorized for this project')
-      unless $self->can_see_project($report->project);
-
-    return $self->stream_file($report->file);
+			unless $self->can_see_project($report->project);
+		$self->header_props(-type => 'application/x-gzip');
+    my $contents = slurp($report->file);
+		return $contents;
 }
 
 =head2 tap_stream

@@ -3,7 +3,7 @@ CREATE TABLE project_developer (
     developer   INTEGER NOT NULL,
     preference  INTEGER,
     admin       INTEGER DEFAULT 0,
-    added       INTEGER DEFAULT 0,
+    added       TEXT NOT NULL,
     PRIMARY KEY (project, developer),
     CONSTRAINT 'fk_project_developer_project' FOREIGN KEY ('project') REFERENCES 'project' ('id') ON DELETE CASCADE,
     CONSTRAINT 'fk_project_developer_developer' FOREIGN KEY ('developer') REFERENCES 'developer' ('id') ON DELETE CASCADE,

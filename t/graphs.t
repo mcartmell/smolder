@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use DateTime;
 use Smolder::TestScript;
 use Smolder::TestData qw(
   base_url
@@ -14,7 +15,6 @@ use Smolder::TestData qw(
   delete_preferences
 );
 use Smolder::Mech;
-use Smolder::DB::ProjectDeveloper;
 
 if (is_smolder_running) {
     plan('no_plan');
@@ -30,10 +30,10 @@ my $proj1 = create_project( public => 0 );
 my $proj2 = create_project();
 
 # add this $dev to $proj1 and $proj2
-my $proj_dev1 = Smolder::DB::ProjectDeveloper->create(
-    {developer => $dev, project => $proj1, preference => create_preference()});
-my $proj_dev2 = Smolder::DB::ProjectDeveloper->create(
-    {developer => $dev, project => $proj2, preference => create_preference()});
+my $proj_dev1 = Smolder::DB::rs('ProjectDeveloper')->create(
+    {added => DateTime->now(), developer => $dev, project => $proj1, preference => create_preference()});
+my $proj_dev2 = Smolder::DB::rs('ProjectDeveloper')->create(
+    {added => DateTime->now(), developer => $dev, project => $proj2, preference => create_preference()});
 
 END {
     delete_developers();
@@ -46,13 +46,13 @@ use_ok('Smolder::Control::Graphs');
 
 # 2..6
 # login as a developer
-$mech->get("$url/start/$proj1");
+$mech->get("$url/start/".$proj1->id);
 #is($mech->status, 401, 'auth required'); # can we control HTTP codes in C::A::Server?
 $mech->content_contains("Unauthorized");
 $mech->content_lacks('Progress Graphs');
 $mech->login(username => $dev->username, password => $pw);
 ok($mech->success);
-$mech->get_ok("$url/start/$proj1");
+$mech->get_ok("$url/start/".$proj1->id);
 $mech->content_contains('Progress Graphs');
 
 # 7

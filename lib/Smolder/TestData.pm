@@ -4,6 +4,7 @@ use warnings;
 use base 'Exporter';
 use Smolder::Conf qw(HostName Port);
 use Smolder::DB;
+use Smolder::DBIConn;
 use File::Spec::Functions qw(catfile);
 use File::Copy qw(copy);
 use LWP::UserAgent;
@@ -64,7 +65,6 @@ my $count = 0;
     sub create_project {
         my %args = @_;
         require DateTime;
-        require Smolder::DB::Project;
 
         # set some defaults
         %args = (
@@ -73,14 +73,14 @@ my $count = 0;
             public     => 1,
             %args,
         );
-        my $proj = Smolder::DB::Project->create(\%args);
+        my $proj = Smolder::DB::rs('Project')->create(\%args);
         push(@projects, $proj);
         return $proj;
     }
 
     sub delete_projects {
         foreach my $proj (@projects) {
-            if ($proj && ref $proj ne 'Class::DBI::Object::Has::Been::Deleted') {
+            if ($proj) {
                 $proj->delete();
             }
         }
@@ -106,7 +106,6 @@ Will delete all developers that were created by L<create_developer>.
 
     sub create_developer {
         my %args = @_;
-        require Smolder::DB::Developer;
 
         # set some defaults
         %args = (
@@ -119,14 +118,14 @@ Will delete all developers that were created by L<create_developer>.
             preference => create_preference(),
             %args,
         );
-        my $dev = Smolder::DB::Developer->create(\%args);
+        my $dev = Smolder::DB::rs('Developer')->create(\%args);
         push(@developers, $dev);
         return $dev;
     }
 
     sub delete_developers {
         foreach my $dev (@developers) {
-            if ($dev && ref $dev ne 'Class::DBI::Object::Has::Been::Deleted') {
+            if ($dev) {
                 $dev->delete();
             }
         }
@@ -153,7 +152,6 @@ Will delete all preferences that were created by L<create_preference>.
 
     sub create_preference {
         my %args = @_;
-        require Smolder::DB::Preference;
 
         # set some defaults
         %args = (
@@ -161,14 +159,14 @@ Will delete all preferences that were created by L<create_preference>.
             email_freq => 'daily',
             %args,
         );
-        my $pref = Smolder::DB::Preference->create(\%args);
+        my $pref = Smolder::DB::rs('Preference')->create(\%args);
         push(@preferences, $pref);
         return $pref;
     }
 
     sub delete_preferences {
         foreach my $pref (@preferences) {
-            if ($pref && ref $pref ne 'Class::DBI::Object::Has::Been::Deleted') {
+            if ($pref) {
                 $pref->delete();
             }
         }
@@ -203,7 +201,6 @@ Will delete all test reports create by L<create_smoke_report>.
 
     sub create_smoke_report {
         my %args = @_;
-        require Smolder::DB::SmokeReport;
 
         my $tags = delete $args{tags} || [];
 
@@ -214,7 +211,7 @@ Will delete all test reports create by L<create_smoke_report>.
             platform     => 'Linux',
             %args,
         );
-        my $report = Smolder::DB::SmokeReport->upload_report(%args);
+        my $report = Smolder::DB::rs('SmokeReport')->upload_report(%args);
 
         # now add any tags
         $report->add_tag($_) foreach (@$tags);
@@ -224,7 +221,7 @@ Will delete all test reports create by L<create_smoke_report>.
 
     sub delete_smoke_reports {
         foreach my $report (@reports) {
-            if ($report && ref $report ne 'Class::DBI::Object::Has::Been::Deleted') {
+            if ($report) {
                 $report->delete();
             }
         }
@@ -241,7 +238,7 @@ Delete the tags with the given names
 
 sub delete_tags {
     my @tags = @_;
-    my $sth  = Smolder::DB->db_Main->prepare_cached('DELETE FROM smoke_report_tag WHERE tag = ?');
+    my $sth  = Smolder::DBIConn::dbh()->prepare_cached('DELETE FROM smoke_report_tag WHERE tag = ?');
     foreach my $t (@tags) {
         $sth->execute($t);
     }
@@ -291,7 +288,7 @@ Returns the value for a given database field given the table, field and id.
 
 sub db_field_value {
     my ($table, $field, $id) = @_;
-    my $sth = Smolder::DB->db_Main->prepare_cached("SELECT $field FROM $table WHERE id = ?");
+    my $sth = Smolder::DBIConn->dbh->prepare_cached("SELECT $field FROM $table WHERE id = ?");
     $sth->execute($id);
     my $row = $sth->fetchrow_arrayref();
     $sth->finish();

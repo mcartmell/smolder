@@ -71,21 +71,29 @@ __PACKAGE__->add_callback(
     prerun => sub {
         my $self   = shift;
         my $q      = $self->query;
-				my $req = Plack::Request->new($q->env);
-        my $cookie = $req->cookies->{smolder};
+				my $cookie_val;
+				if ($ENV{PLACK_ENV}) {
+					my $req = Plack::Request->new($q->env);
+					my $cookie = $req->cookies->{smolder};
+					$cookie_val = $cookie;
+				}
+				else {
+					my $cookie = CGI::Cookie->fetch();
+					$cookie = $cookie->{smolder};
+					$cookie_val = $cookie->value if ref $cookie;
+				}
+
         my $ai = Smolder::AuthInfo->new();
         my @user_groups;
+				delete $ENV{REMOTE_USER};
 
         # make sure we have a cookie and a session
-        if ($cookie) {
-            my $value = $cookie;
-            if ($value) {
+        if (my $value = $cookie_val) {
                 $ai->parse($value);
                 if( $ai->id ) {
                     $ENV{REMOTE_USER} = $ai->id;
                     @user_groups = @{$ai->groups};
                 }
-            }
         }
 
         # log them in if the username and password are passed
@@ -194,6 +202,7 @@ has permissions to view the given a L<Smolder::DB::Project> object.
 
 sub can_see_project {
     my ($self, $proj) = @_;
+		return if !$self->developer;
 		return $proj->public || $proj->has_developer($self->developer);
 }
 
@@ -430,7 +439,7 @@ __PACKAGE__->add_callback(
             'dfv_defaults' => {
                 filters                 => ['trim'],
                 msgs                    => \&_create_dfv_msgs,
-                untaint_all_constraints => 1,
+                #untaint_all_constraints => 1,
             }
         );
     }
@@ -454,7 +463,7 @@ sub _create_dfv_msgs {
                 $msgs{"invalid_$failed"} = 1;
                 my $names = $dfv->invalid($failed);
                 foreach my $name (@$names) {
-                    next if (ref $name);    # skip regexes
+                    next if (ref $name || !defined $name);    # skip regexes
                     $msgs{"invalid_$name"} = 1;
                 }
             }
@@ -473,11 +482,8 @@ sub _create_dfv_msgs {
 }
 
 sub rs {
-	schema()->resultset(pop);
+	Smolder::DB::rs(@_);
 }
 
-sub schema {
-	return Smolder::DB::Schema->connect( sub { Smolder::DBIConn->instance->dbh });
-}
 
 1;

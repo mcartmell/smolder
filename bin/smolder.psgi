@@ -14,8 +14,7 @@ BEGIN {
     }
 }
 # preload some modules
-use Smolder::Dispatch;
-use Smolder::Dispatch;
+use Smolder::Dispatch::PSGI;
 use Smolder::Control;
 use Smolder::Control::Admin;
 use Smolder::Control::Admin::Developers;
@@ -35,5 +34,5 @@ builder {
     enable "Plack::Middleware::Static", path => qr{^/(js|style|images)/}, root => HtdocsDir;
     mount
       '/'          => Smolder::Redirect->psgi_app,
-      mount '/app' => Smolder::Dispatch->as_psgi;
+      mount '/app' => Smolder::Dispatch::PSGI->as_psgi;
 }

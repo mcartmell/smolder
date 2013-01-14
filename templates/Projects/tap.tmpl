@@ -20,7 +20,7 @@
 var checkbox = $('toggle_tests_trigger');
 var toggle_rows = function() {
     var count = 0;
-    $$('.tap tbody').each(function(row) {
+    $$('.tap tbody tr.results').each(function(row) {
         if( checkbox.checked ) {
             if( row.hasClassName('passed') ) {
                 row.hide();

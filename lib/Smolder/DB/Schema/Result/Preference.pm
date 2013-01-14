@@ -56,6 +56,7 @@ __PACKAGE__->table("preference");
 =head2 email_sent_timestamp
 
   data_type: 'text'
+  default_value: (empty string)
   is_nullable: 1
 
 =head2 show_passing
@@ -78,7 +79,7 @@ __PACKAGE__->add_columns(
   "email_sent",
   { data_type => "int", default_value => 0, is_nullable => 1 },
   "email_sent_timestamp",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "text", default_value => "", is_nullable => 1 },
   "show_passing",
   { data_type => "int", default_value => 1, is_nullable => 1 },
 );
@@ -128,8 +129,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-10 15:45:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:506uUts9lIR0cC1nE92kdg
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-12 18:43:26
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iZOOsFJDQoOcgz8I2wFl7g
 
 __PACKAGE__->inflate_column('email_sent_timestamp', {
 		inflate => sub { Smolder::DB->parse_datetime(shift) },
@@ -139,7 +140,7 @@ __PACKAGE__->inflate_column('email_sent_timestamp', {
 sub project {
 	my $self = shift;
 	my ($proj_dev) = $self->project_developers;
-	return $proj_dev->project;
+	return $proj_dev ? $proj_dev->project : (); 
 }
 
 sub email_types {

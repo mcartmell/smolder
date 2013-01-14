@@ -1,12 +1,12 @@
 package Smolder::DB;
 use strict;
 use warnings;
-use Smolder::Conf qw(SQLDir DataDir);
-use Smolder::DBIConn;
-use Smolder::Control;
-use DBI;
+use Smolder::Conf qw(SQLDir DataDir HostName Port);
+use Smolder::DBIConn ();
+use Smolder::Control ();
+use DBI ();
 use File::Spec::Functions qw(catfile);
-use DateTime::Format::Strptime;
+use DateTime::Format::Strptime ();
 
 =head1 NAME
 
@@ -25,10 +25,6 @@ In your subclass,
 =head1 DESCRIPTION
 
 This class provides a single place for handling all of the database connections in Smolder.
-It is a subclass of L<Class::DBI::mysql> and provides a base class 
-for object persistence using Class::DBI.
-
-It also provides a connect() method for getting a DBI connection from non Class::DBI code.
 
 =head1 INTERFACE
 
@@ -185,20 +181,6 @@ sub refresh {
     $self = $class->retrieve($id);
     return $self;
 }
-
-=head2 retrieve_all_sorted_by($column_name)
-
-This object methed is exported from L<Class::DBI::Plugin::RetrieveAll>.  It takes
-a name of the data field that you wish to sort by.  Otherwise it works
-like a normal Class::DBI retrieve_all.  Please see L<Class::DBI::Plugin::RetrieveAll>
-or more details.
-
-=head2 retrieve_all_sort_field($column_name)
-
-This object method changes the default retrieve_all() in the Class to be
-auto-sorted by the specified column.  Please see
-L<Class::DBI::Plugin::RetrieveAll> for more details.
-
 
 =head2 db_file
 
@@ -419,6 +401,14 @@ sub parse_datetime {
     return $DATE_FMT->parse_datetime($string);
 }
 
+sub rs {
+	schema()->resultset(pop);
+}
+
+sub schema {
+	return Smolder::DB::Schema->connect( sub { Smolder::DBIConn->instance->dbh });
+}
+
 1;
 
 __END__
@@ -428,11 +418,5 @@ __END__
 =over
 
 =item L<DBI>
-
-=item L<Class::DBI>
-
-=item L<Class::DBI::SQLite>
-
-=item L<Class::DBI::Plugin::RetrieveAll>
 
 =back

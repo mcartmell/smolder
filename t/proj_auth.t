@@ -13,7 +13,6 @@ use Smolder::TestData qw(
   delete_smoke_reports
 );
 use Smolder::Mech;
-use Smolder::DB::ProjectDeveloper;
 use Smolder::Conf;
 use File::Spec::Functions qw(catfile);
 

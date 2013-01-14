@@ -75,7 +75,10 @@ Returns regex that assures the data is simply an unsigned integer
 =cut
 
 sub unsigned_int {
-    return qr/^\d+$/;
+    return sub {
+			my ($dfv, $val) = @_;
+			return $val =~ /^\d+$/;
+		}
 }
 
 =head2 bool
@@ -85,7 +88,7 @@ Returns a regex that assures the data is either a '1' or a '0'
 =cut
 
 sub bool {
-    return qr/^1|0$/;
+	return qr/^[01]/;
 }
 
 =head2 length_max
@@ -97,7 +100,10 @@ at most $max number of printable characters.
 
 sub length_max {
     my $max = shift;
-    return qr/^[[:print:]\s]{1,$max}$/;
+		return sub {
+			my (undef, $val) = @_;
+			$val =~ qr/^[[:print:]\s]{1,$max}$/ ? $val : undef;
+		};
 }
 
 =head2 length_min
@@ -109,7 +115,10 @@ at least $min number of printable characters.
 
 sub length_min {
     my $min = shift;
-    return qr/^[[:print:]\s]{$min,}$/;
+    return sub { 
+			my (undef, $val) = @_;
+			$val =~ qr/^[[:print:]\s]{$min,}$/ ? $val : undef;
+		}
 }
 
 =head2 length_between
@@ -121,7 +130,11 @@ at least $min and at most $max number of printable characters.
 
 sub length_between {
     my ($min, $max) = sort { $a <=> $b } @_;
-    return qr/^[[:print:]]{$min,$max}$/;
+    my $rx = qr/^[[:print:]]{$min,$max}$/;
+		return sub { 
+			my ($dfv, $val) = @_;
+			$val =~ $rx ? $val : undef;
+		}
 }
 
 =head2 enum_value

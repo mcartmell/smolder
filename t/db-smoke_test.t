@@ -21,10 +21,10 @@ END { delete_projects() }
 my $project = create_project();
 
 # 1
-use_ok('Smolder::DB::SmokeReport');
+use_ok('Smolder::DB::Schema::Result::SmokeReport');
 
 # test basic creation
-my $report = Smolder::DB::SmokeReport->create(
+my $report = Smolder::DB::rs('SmokeReport')->create(
     {
         developer    => $dev,
         project      => $project,
@@ -38,24 +38,25 @@ my $report = Smolder::DB::SmokeReport->create(
         total        => 140,
         test_files   => 10,
         duration     => 30,
+				added => DateTime->now(),
     }
 );
 END { $report->delete if ($report) }
-isa_ok($report,            'Smolder::DB::SmokeReport');
-isa_ok($report->developer, 'Smolder::DB::Developer');
-isa_ok($report->project,   'Smolder::DB::Project');
+isa_ok($report,            'Smolder::DB::Schema::Result::SmokeReport');
+isa_ok($report->developer, 'Smolder::DB::Schema::Result::Developer');
+isa_ok($report->project,   'Smolder::DB::Schema::Result::Project');
 isa_ok($report->added,     'DateTime');
 
 # upload a new file
-$report = Smolder::DB::SmokeReport->upload_report(
+$report = Smolder::DB::rs('SmokeReport')->upload_report(
     file    => catfile(Smolder::Conf->test_data_dir, 'test_run_bad.tar.gz'),
     project => $project,
 );
 
 # object types
-isa_ok($report,            'Smolder::DB::SmokeReport');
-isa_ok($report->developer, 'Smolder::DB::Developer');
-isa_ok($report->project,   'Smolder::DB::Project');
+isa_ok($report,            'Smolder::DB::Schema::Result::SmokeReport');
+isa_ok($report->developer, 'Smolder::DB::Schema::Result::Developer');
+isa_ok($report->project,   'Smolder::DB::Schema::Result::Project');
 isa_ok($report->added,     'DateTime');
 
 # basic datum

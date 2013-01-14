@@ -262,8 +262,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-10 15:45:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yw49GZP7ucyNnUtZNO1fZA
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-12 18:42:05
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:On1Pfh9UGnmXUpYBoynLuQ
 
 __PACKAGE__->inflate_column('added', {
 		inflate => sub { Smolder::DB->parse_datetime(shift) },
@@ -653,7 +653,7 @@ sub update_from_tap_archive {
                     ) or die "could not find or create test file '$label'";
                     $self->result_source->schema->resultset('TestFileResult')->update_or_create(
                         {
-														added				 => Smolder::DB->format_datetime(DateTime->now),
+														added				 => time,
                             test_file    => $test_file->id,
                             smoke_report => $self->id,
                             project      => $self->project->id,
@@ -699,7 +699,7 @@ sub update_from_tap_archive {
         todo       => scalar $aggregator->todo,
         todo_pass  => scalar $aggregator->todo_passed,
         test_files => scalar @suite_results,
-        failed     => !!$aggregator->failed,
+        failed     => 0 + $aggregator->failed,
         duration   => $duration,
 			}
     );
@@ -709,8 +709,8 @@ sub update_from_tap_archive {
     if ($meta->{extra_properties}) {
         foreach my $k (keys %{$meta->{extra_properties}}) {
             foreach my $field qw(architecture platform comments) {
-                if (lc($k) eq $field && !$self->get($field)) {
-                    $self->set($field => delete $meta->{extra_properties}->{$k});
+                if (lc($k) eq $field && !defined $self->$field) {
+                    $self->set_inflated_columns({ $field => delete $meta->{extra_properties}->{$k} });
                     last;
                 }
             }
@@ -724,7 +724,7 @@ sub update_from_tap_archive {
         meta         => $meta,
     );
     $matrix->generate_html();
-    $self->update();
+    $self->update;
 
     return \@suite_results;
 }

@@ -69,7 +69,7 @@ __PACKAGE__->table("test_file_result");
 
 =head2 added
 
-  data_type: 'text'
+  data_type: 'integer'
   is_nullable: 0
 
 =cut
@@ -92,7 +92,7 @@ __PACKAGE__->add_columns(
   "percent",
   { data_type => "integer", is_nullable => 0 },
   "added",
-  { data_type => "text", is_nullable => 0 },
+  { data_type => "integer", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -155,8 +155,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-10 15:45:52
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BGd/GC96wS6T9V4gbo0DEQ
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-12 18:36:36
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yFx4niQ/CqciGOp9EWUZTw
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

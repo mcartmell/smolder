@@ -49,9 +49,8 @@ __PACKAGE__->table("project_developer");
 
 =head2 added
 
-  data_type: 'integer'
-  default_value: 0
-  is_nullable: 1
+  data_type: 'text'
+  is_nullable: 0
 
 =cut
 
@@ -65,7 +64,7 @@ __PACKAGE__->add_columns(
   "admin",
   { data_type => "integer", default_value => 0, is_nullable => 1 },
   "added",
-  { data_type => "integer", default_value => 0, is_nullable => 1 },
+  { data_type => "text", is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -135,9 +134,13 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-10 09:16:39
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:doY5obQGwPUOrYRh1av1DQ
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-12 18:42:05
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:aM9MMGf9uyg++znceWluaw
 
+__PACKAGE__->inflate_column('added', {
+		inflate => sub { Smolder::DB->parse_datetime(shift) },
+		deflate => sub { Smolder::DB->format_datetime(shift) },
+	});
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
