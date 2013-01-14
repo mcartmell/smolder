@@ -1,5 +1,6 @@
 package Smolder::Email;
-use Smolder::Conf qw(HostName FromAddress SMTPHost Port TemplateDir);
+use Smolder::Conf qw(HostName FromAddress SMTPHost Port TemplateDir HtdocsDir);
+use File::Slurp qw(slurp);
 use File::Spec::Functions qw(catdir tmpdir);
 use Template;
 use MIME::Lite;
@@ -83,6 +84,7 @@ sub send_mime_mail {
     $tt_params->{subject}  = $subject;
     $tt_params->{email}    = 1;
     $tt_params->{odd_even} = Template::Plugin::Cycle->new(qw(odd even));
+		$tt_params->{inline_css}	 = slurp(HtdocsDir . "/style/style.css") . "\n\n".slurp(HtdocsDir . "/style/email.css");
 
     # get the HTML and plain text content
     my $html;
