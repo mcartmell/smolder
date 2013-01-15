@@ -563,6 +563,45 @@ Smolder.setup_tooltip = function(trigger, target) {
     };
 }
 
+Smolder.TestRow = {};
+Smolder.TestRow.should_show = function(row) {
+	var tog = $('toggle_tests_trigger');
+	var tag = $('filter_tests_by_tag').value;
+
+	if (tog.checked && row.hasClassName('passed')) {
+		return false;
+	}
+	if (tag != '' && !row.hasClassName('tag_' + tag)) {
+		return false;
+	}
+	return true;
+};
+
+Smolder.filter_test_rows = function() {
+	var count = 0;
+	$$('.tap tbody tr.results').each(function(row) {
+		if (Smolder.TestRow.should_show(row)) {
+			row.show();
+			if( count % 2 == 1 ) {
+					if(row.hasClassName('even')) {
+							row.removeClassName('even');
+							row.addClassName('odd');
+					}
+			} else {
+					if(row.hasClassName('odd')) {
+							row.removeClassName('odd');
+							row.addClassName('even');
+					}
+			}
+			count++;
+		}
+		else {
+			row.hide();
+		}
+});
+}
+
+
 // CRUD abstraction for Smolder
 Smolder.__known_CRUDS = { };
 Smolder.CRUD = Class.create();
@@ -1002,46 +1041,11 @@ var myrules = {
     '.tap div.diag': function(el) {
         Smolder.setup_tooltip(el, el);
     },
+		'#filter_tests_by_tag' : function(el) {
+			el.onchange = Smolder.filter_test_rows;
+		},
     '#toggle_tests_trigger' : function(el) {
-    	el.onchange = function() {
-            var count = 0;
-            $$('.tap tbody tr.results').each(function(row) {
-                if( el.checked ) {
-                    if( row.hasClassName('passed') ) {
-                        row.hide();
-                    } else {
-                        if( count % 2 == 1 ) {
-                            if(row.hasClassName('even')) {
-                                row.removeClassName('even');
-                                row.addClassName('odd');
-                            }
-                        } else {
-                            if(row.hasClassName('odd')) {
-                                row.removeClassName('odd');
-                                row.addClassName('even');
-                            }
-                        }
-                        count++;
-                    }
-                } else {
-                    if( row.hasClassName('passed') ) {
-                        row.show();
-                    }
-                    if( count % 2 == 1 ) {
-                        if(row.hasClassName('even')) {
-                            row.removeClassName('even');
-                            row.addClassName('odd');
-                        }
-                    } else {
-                        if(row.hasClassName('odd')) {
-                            row.removeClassName('odd');
-                            row.addClassName('even');
-                        }
-                    }
-                    count++;
-                }
-            });
-        };
+    	el.onchange = Smolder.filter_test_rows;
     },
     '.tap a.show_all' : function(el) {
         Event.observe(el, 'click', function() {

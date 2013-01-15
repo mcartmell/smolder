@@ -55,6 +55,7 @@ sub setup {
               tap_stream
               mute_testfiles
               comment_testfiles
+							tag_testfiles
               test_file_history
               feed
               )
@@ -676,6 +677,29 @@ sub mute_testfiles {
     $self->add_message(msg => $days ? "Test files successfully muted." : "Test files successfully un-muted.");
     my $return_to = $q->param('return_to') || 'report_details';
     return $self->$return_to;
+}
+
+=head2 tag_testfiles
+
+Attach a tag to test files.
+
+=cut
+
+sub tag_testfiles {
+	my $self = shift;
+	my $q = $self->query;
+  my @testfiles = map { $self->rs('TestFile')->find($_) } ($q->param('testfiles'));
+	return $self->error_message('Invalid test files') if !@testfiles;
+  my $tag = $q->param('test_file_tag');
+  foreach my $test_file (@testfiles) {
+		return $self->error_message('Unauthorized for this project')
+			unless $test_file->project->has_developer($self->developer);
+		$test_file->add_tag($tag);
+	}
+  $self->add_message(msg => 'Tag successfully added');
+  $self->param(id => $testfiles[0]->project->id);
+  $self->param(test_file_id => $testfiles[0]->id);
+	return $self->test_file_history;
 }
 
 =head2 comment_testfiles 

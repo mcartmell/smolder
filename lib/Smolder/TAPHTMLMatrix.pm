@@ -33,6 +33,8 @@ sub new {
 
 sub report  { shift->{smoke_report} }
 sub results { shift->{test_results} }
+sub tags_for_file { shift->{tags_for_file} }
+sub possible_tags { shift->{possible_tags} }
 
 sub generate_html {
     my $self = shift;
@@ -57,6 +59,8 @@ sub generate_html {
             odd_even         => $odd_even,
             url_base         => Smolder::Util::url_base(),
             extra_properties => $extra_props,
+						tags_for_file		 => $self->tags_for_file,
+						possible_tags		 => $self->possible_tags,
         },
         $file,
     ) or croak $TMPL->error;

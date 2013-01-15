@@ -118,9 +118,24 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 test_file_tags
 
-# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-12 18:36:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v5jZWruO+s4FN9+7o9jE/g
+Type: has_many
+
+Related object: L<Smolder::DB::Schema::Result::TestFileTag>
+
+=cut
+
+__PACKAGE__->has_many(
+  "test_file_tags",
+  "Smolder::DB::Schema::Result::TestFileTag",
+  { "foreign.test_file" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+
+# Created by DBIx::Class::Schema::Loader v0.07033 @ 2013-01-15 20:29:51
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oo7UpoISs0XKLFmKIJ42VA
 
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
@@ -131,6 +146,11 @@ __PACKAGE__->inflate_column('mute_until', {
 		inflate => sub { DateTime->from_epoch(epoch => shift, time_zone => 'local') },
 		deflate => sub { shift->epoch },
 	});
+
+sub add_tag {
+	my ($self, $tag) = @_;
+	$self->find_or_create_related('test_file_tags', { tag => $tag });
+}
 
 sub is_muted {
     my ($self) = @_;

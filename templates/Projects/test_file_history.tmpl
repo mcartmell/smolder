@@ -1,5 +1,23 @@
 [%- SET page_title = project.name _ ' - ' _ test_file.label -%]
 
+<h2>Tags</h2>
+[% IF test_file.test_file_tags.size %]
+<ul>
+[% FOREACH tag IN test_file.test_file_tags.sort %]
+<li>[% tag.tag %]</li>
+[% END %]
+
+</ul>
+[% ELSE %]
+There are no tags for this file<br />
+[% END %]
+[% IF project.has_developer(c.developer) %]
+<form id="add_tag_form" method="post" action="/app/projects/tag_testfiles/[% project.id %]/[% test.test_file %]">
+<input type="hidden" name="testfiles" value="[% test_file.id %]" />
+<input type="text" name="test_file_tag" /><br />
+<input type="submit" value="Add">
+</form>
+[% END %]
 <h2>History</h2>
 
 <div class="tap">

@@ -565,6 +565,7 @@ sub update_from_tap_archive {
     }
 
     my $meta;
+		my %tags_for_file;
 
     # keep track of some things on our own because TAP::Parser::Aggregator
     # doesn't handle total or failed right when a test exits early
@@ -651,6 +652,7 @@ sub update_from_tap_archive {
                             label   => $label
                         }
                     ) or die "could not find or create test file '$label'";
+										$tags_for_file{$test_file->id} = [map { $_->tag } $test_file->test_file_tags];
                     $self->result_source->schema->resultset('TestFileResult')->update_or_create(
                         {
 														added				 => time,
@@ -717,11 +719,15 @@ sub update_from_tap_archive {
         }
     }
 
+		my %unique_tags = map { $_ => 1 } map { @$_ } values %tags_for_file;
+
     # generate the HTML reports
     my $matrix = Smolder::TAPHTMLMatrix->new(
         smoke_report => $self,
         test_results => \@suite_results,
         meta         => $meta,
+				tags_for_file => \%tags_for_file,
+				possible_tags => [keys %unique_tags],
     );
     $matrix->generate_html();
     $self->update;

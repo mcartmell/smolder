@@ -101,6 +101,13 @@
     </div>
   </div>
   <div style="float: right; margin-right: 14px;">
+		Tag
+		<select id="filter_tests_by_tag" name="filter_tests_by_tag">
+			<option value="">All</option>
+		[% FOREACH k IN possible_tags %]
+			<option value="[% k %]">[% k %]</option>
+		[% END %]
+		</select>
     Only show failures
     <input type="checkbox" id="toggle_tests_trigger" name="toggle_tests" />
   </div>
@@ -117,7 +124,9 @@
   </thead>
   [%- SET found_first_failure = 0 -%]
   [%- FOREACH test IN results -%]
-  <tr id="test_[% loop.index %]" class="results [% odd_even %] [% UNLESS test.failed %]passed[% END %]">
+	[% tfile = test.test_file %]
+	[% classes = tags_for_file.$tfile %]
+  <tr id="test_[% loop.index %]" class="results [% odd_even %] [% UNLESS test.failed %]passed[% END %] [% FOREACH c IN classes %]tag_[% c %] [% END %]">
       [%- UNLESS email -%]
       <td width="5%"><input type="checkbox" name="testfiles" value="[% test.test_file %]" onchange="toggle_testfile_menu(this)"></td>
       [%- END -%]
